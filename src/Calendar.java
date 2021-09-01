@@ -5,8 +5,12 @@ public class Calendar {
 
     JFrame frame;
     JMenuBar menubar;
-    JMenuItem i1;
-    JMenuItem i2;
+    JMenu file;
+    JMenu view;
+    JMenuItem exit;
+    JMenuItem dayView;
+    JMenuItem monthView;
+
     JTextArea text;
 
     Calendar() {
@@ -17,10 +21,16 @@ public class Calendar {
 
         // Setting Up Menu Bar & Items
         menubar = new JMenuBar();
-        i1 = new JMenuItem("Month View");
-        i2 = new JMenuItem("Day View");
-        menubar.add(i1);
-        menubar.add(i2);
+        file = new JMenu("File");
+        view = new JMenu("View");
+        exit = new JMenuItem("Exit");
+        dayView = new JMenuItem("Day View");
+        monthView = new JMenuItem("Month View");
+        file.add(exit);
+        view.add(dayView);
+        view.add(monthView);
+        menubar.add(file);
+        menubar.add(view);
         frame.getContentPane().add(menubar, BorderLayout.NORTH);
 
         // Setting Up Text Area
