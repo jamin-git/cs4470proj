@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Calendar {
 
@@ -21,6 +22,8 @@ public class Calendar {
 
     JPanel mainArea;
     JLabel placeHolder;
+
+    boolean dayViewBool = true;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -64,11 +67,11 @@ public class Calendar {
         mainArea.setLayout(new BorderLayout());
         mainArea.setBackground(Color.lightGray);
         LocalDate today = LocalDate.now();
-        placeHolder = new JLabel("Day View: " + today);
-        mainArea.add(placeHolder, BorderLayout.CENTER);
+        placeHolder = new JLabel();
+        changeDay();
+        mainArea.add(placeHolder);
 
         frame.getContentPane().add(mainArea);
-
 
         frame.pack();
         frame.setVisible(true);
@@ -87,8 +90,25 @@ public class Calendar {
         view.add(monthView);
         menuBar.add(file);
         menuBar.add(view);
+
+        exit.addActionListener(e -> System.exit(0));
+        monthView.addActionListener(e -> changeMonth());
+        dayView.addActionListener(e -> changeDay());
         frame.getContentPane().add(menuBar, BorderLayout.NORTH);
     }
+    private void changeMonth() {
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
+        String month = date.format(monthFormatter);
+        placeHolder.setText("Month View: " + month);
+    }
+    private void changeDay() {
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        String day = date.format(monthFormatter);
+        placeHolder.setText("Day View: " + day);
+    }
+
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
