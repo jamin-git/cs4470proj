@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -23,7 +25,10 @@ public class Calendar {
     JPanel mainArea;
     JLabel placeHolder;
 
+    JPanel appointmentBox;
+
     int temp = 0;
+    boolean isDay = true;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -59,8 +64,34 @@ public class Calendar {
         westButtons.add(prev);
         westButtons.add(appointment);
 
-        next.addActionListener(e -> nextDay());
-        prev.addActionListener(e -> prevDay());
+        today.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (isDay) {
+                    changeDay();
+                } else {
+                    changeMonth();
+                }
+            }
+        });
+        next.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (isDay) {
+                    nextDay();
+                } else {
+                    nextMonth();
+                }
+            }
+        });
+        prev.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (isDay) {
+                    prevDay();
+                } else {
+                    prevMonth();
+                }
+            }
+        });
+        appointment.addActionListener(e -> appointment());
 
         frame.getContentPane().add(westButtons, BorderLayout.WEST);
 
@@ -103,12 +134,16 @@ public class Calendar {
         DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
         String month = date.format(monthFormatter);
         placeHolder.setText("Month View: " + month);
+        isDay = false;
+        temp = 0;
     }
     private void changeDay() {
         LocalDate date = LocalDate.now();
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
         String day = date.format(dayFormatter);
         placeHolder.setText("Day View: " + day);
+        isDay = true;
+        temp = 0;
     }
     private void nextDay() {
         temp++;
@@ -125,6 +160,57 @@ public class Calendar {
         date = date.plusDays(temp);
         String day = date.format(dayFormatter);
         placeHolder.setText("Day View: " + day);
+    }
+
+    private void nextMonth() {
+        temp++;
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
+        date = date.plusMonths(temp);
+        String month = date.format(monthFormatter);
+        placeHolder.setText("Month View: " + month);
+    }
+    private void prevMonth() {
+        temp--;
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
+        date = date.plusMonths(temp);
+        String month = date.format(monthFormatter);
+        placeHolder.setText("Month View: " + month);
+    }
+
+    private void appointment() {
+        appointmentBox = new JPanel();
+        appointmentBox.setLayout(new BoxLayout(appointmentBox, BoxLayout.Y_AXIS));
+
+        LocalDate day = LocalDate.now();
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        day.format(dayFormatter);
+
+        JTextField name = new JTextField(5);
+        JTextField date = new JTextField(day.toString(),5);
+        JSpinner start = new JSpinner();
+        JSpinner end = new JSpinner();
+        JCheckBox vacation = new JCheckBox("Vacation");
+        JCheckBox work = new JCheckBox("Work");
+        JCheckBox school = new JCheckBox("School");
+        JCheckBox family = new JCheckBox("Family");
+
+
+        appointmentBox.add(new JLabel("Enter Appointment Name: "));
+        appointmentBox.add(name);
+        appointmentBox.add(new JLabel("Enter Date: "));
+        appointmentBox.add(date);
+        appointmentBox.add(new JLabel("Enter Start Time: "));
+        appointmentBox.add(start);
+        appointmentBox.add(new JLabel("Enter End Time: "));
+        appointmentBox.add(end);
+        appointmentBox.add(vacation);
+        appointmentBox.add(work);
+        appointmentBox.add(school);
+        appointmentBox.add(family);
+
+        JOptionPane.showMessageDialog(frame, appointmentBox);
     }
 
     public static void main(String[] args) {
