@@ -23,7 +23,7 @@ public class Calendar {
     JPanel mainArea;
     JLabel placeHolder;
 
-    boolean dayViewBool = true;
+    int temp = 0;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -59,6 +59,9 @@ public class Calendar {
         westButtons.add(prev);
         westButtons.add(appointment);
 
+        next.addActionListener(e -> nextDay());
+        prev.addActionListener(e -> prevDay());
+
         frame.getContentPane().add(westButtons, BorderLayout.WEST);
 
         // Configuring Main Area (Defaulted to Day View)
@@ -66,7 +69,6 @@ public class Calendar {
         mainArea.setPreferredSize(new Dimension(800, 600));
         mainArea.setLayout(new BorderLayout());
         mainArea.setBackground(Color.lightGray);
-        LocalDate today = LocalDate.now();
         placeHolder = new JLabel();
         changeDay();
         mainArea.add(placeHolder);
@@ -104,8 +106,24 @@ public class Calendar {
     }
     private void changeDay() {
         LocalDate date = LocalDate.now();
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
-        String day = date.format(monthFormatter);
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        String day = date.format(dayFormatter);
+        placeHolder.setText("Day View: " + day);
+    }
+    private void nextDay() {
+        temp++;
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        date = date.plusDays(temp);
+        String day = date.format(dayFormatter);
+        placeHolder.setText("Day View: " + day);
+    }
+    private void prevDay() {
+        temp--;
+        LocalDate date = LocalDate.now();
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        date = date.plusDays(temp);
+        String day = date.format(dayFormatter);
         placeHolder.setText("Day View: " + day);
     }
 
