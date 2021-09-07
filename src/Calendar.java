@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -258,9 +259,10 @@ public class Calendar {
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String day = currDate.format(dayFormatter);
 
-        ImageIcon cal = new ImageIcon("graphics/cal.png");
+        URL calURL = getClass().getResource("cal.png");
+        ImageIcon cal = new ImageIcon(calURL);
         JTextField name = new JTextField(5);
-        JTextField date = new JTextField(day.toString(),5);
+        JTextField date = new JTextField(day,5);
         JSpinner start = new JSpinner();
         JSpinner end = new JSpinner();
         JCheckBox vacation = new JCheckBox("Vacation");
@@ -310,14 +312,17 @@ public class Calendar {
             westFlow.setBackground(lightBlue);
             westButtons.setBackground(lightBlue);
             mainArea.setBackground(gray);
+            statusBar.setText("Status: Changed to Sky Theme");
         } else if (curr == forest) {
             westFlow.setBackground(lightGreen);
             westButtons.setBackground(lightGreen);
             mainArea.setBackground(gray);
+            statusBar.setText("Status: Changed to Forest Theme");
         } else {
             westFlow.setBackground(lightPurple);
             westButtons.setBackground(lightPurple);
             mainArea.setBackground(gray);
+            statusBar.setText("Status: Changed to Lavender Theme");
         }
     }
 
