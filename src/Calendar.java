@@ -35,10 +35,11 @@ public class Calendar {
     JButton prev;
     JButton appointment;
 
-
+    // Initializing Main Area Panels
     JPanel mainArea;
     JLabel placeHolder;
 
+    // Initializing the appointment dialog box
     JPanel appointmentBox;
 
     // Misc Variables
@@ -108,6 +109,7 @@ public class Calendar {
         menuBar.add(view);
         menuBar.add(theme);
 
+        // Adding ActionListeners for each item
         exit.addActionListener(e -> System.exit(0));
         monthView.addActionListener(e -> changeMonth());
         dayView.addActionListener(e -> changeDay());
@@ -118,33 +120,48 @@ public class Calendar {
         frame.getContentPane().add(menuBar, BorderLayout.NORTH);
     }
     private void initStatusBar() {
+        // Initializing the Status Bar
         statusBar = new JLabel("This is a status bar!");
         statusBar.setFont(franklinGothic);
         frame.getContentPane().add(statusBar, BorderLayout.SOUTH);
     }
     private void initControlPanel() {
+        // Initializing the westButtons (Control Buttons)
         westButtons = new JPanel();
         westButtons.setLayout(new BoxLayout(westButtons, BoxLayout.Y_AXIS));
         westButtons.setPreferredSize(new Dimension(200, 0));
 
-        westFlow = new JPanel();
-        westFlow.setMaximumSize(new Dimension(300, 36));
+        // Adding Vertical Glue to Beginning of the BoxLayout
+        westButtons.add(Box.createVerticalGlue());
 
+        // Configuring Flow Layout for Prev & Next Buttons
+        westFlow = new JPanel();
+        westFlow.setMaximumSize(new Dimension(300, 40));
+
+        // Adding the Today Button
         today = new JButton("Today");
         today.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         westButtons.add(today);
+        westButtons.add(Box.createRigidArea(new Dimension(0,10)));
+
+        // Adding the Prev / Next Button
         next = new JButton("Next");
         prev = new JButton("Prev");
-
         westFlow.add(prev);
         westFlow.add(next);
-        westButtons.add(westFlow);
 
+        westButtons.add(westFlow);
+        westButtons.add(Box.createRigidArea(new Dimension(0,10)));
+
+        // Adding the Appointment Button
         appointment = new JButton("New Appointment");
         appointment.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         westButtons.add(appointment);
 
 
+        // Action Listeners for Buttons
         today.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (isDay) {
@@ -174,10 +191,14 @@ public class Calendar {
                 }
             }
         });
-
         appointment.addActionListener(e -> appointment());
 
+
+        westButtons.add(Box.createVerticalGlue());
+
+        // Adding Buttons to the Frame
         frame.getContentPane().add(westButtons, BorderLayout.WEST);
+
 
         // Styling Buttons
         today.setFont(franklinGothic);
@@ -186,6 +207,7 @@ public class Calendar {
         appointment.setFont(franklinGothic);
     }
     private void initMainArea() {
+        // Initializing the mainArea Panel and the PlaceHolder view
         mainArea = new JPanel();
         mainArea.setPreferredSize(new Dimension(1200, 800));
         mainArea.setLayout(new BorderLayout());
@@ -193,11 +215,15 @@ public class Calendar {
         placeHolder.setFont(verdana);
         placeHolder.setHorizontalAlignment(JLabel.CENTER);
         placeHolder.setVerticalAlignment(JLabel.CENTER);
-        changeDay();
-        mainArea.add(placeHolder, BorderLayout.CENTER);
 
+        // Defaults to DayView
+        changeDay();
+
+        // Adding to the Frame
+        mainArea.add(placeHolder, BorderLayout.CENTER);
         frame.getContentPane().add(mainArea);
     }
+
     private void changeMonth() {
         LocalDate date = LocalDate.now();
         DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
@@ -231,7 +257,6 @@ public class Calendar {
         placeHolder.setText("Day View: " + day);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
-
     private void nextMonth() {
         temp++;
         LocalDate date = LocalDate.now();
@@ -252,24 +277,39 @@ public class Calendar {
     }
 
     private void appointment() {
+        // Configuring the Appointment Panel
         appointmentBox = new JPanel();
         appointmentBox.setLayout(new BoxLayout(appointmentBox, BoxLayout.Y_AXIS));
 
+        // Determining the Current Day
         LocalDate currDate = LocalDate.now();
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String day = currDate.format(dayFormatter);
 
+        // Calendar Icon Initialization
         URL calURL = getClass().getResource("cal.png");
         ImageIcon cal = new ImageIcon(calURL);
+
+        // TextField Initialization
         JTextField name = new JTextField(5);
         JTextField date = new JTextField(day,5);
-        JSpinner start = new JSpinner();
-        JSpinner end = new JSpinner();
+
+
+        // Used a ComboBox for Time Picking
+        String[] times = {"12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm",
+                "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"};
+        JComboBox start = new JComboBox(times);
+        JComboBox end = new JComboBox(times);
+
+
+        // JCheckBox Initialization
         JCheckBox vacation = new JCheckBox("Vacation");
         JCheckBox work = new JCheckBox("Work");
         JCheckBox school = new JCheckBox("School");
         JCheckBox family = new JCheckBox("Family");
+        JCheckBox other = new JCheckBox("Other");
 
+        // Adding JLabels & Inputs
         appointmentBox.add(new JLabel("Enter Appointment Name: "));
         appointmentBox.add(name);
         appointmentBox.add(new JLabel("Enter Date: "));
@@ -282,9 +322,12 @@ public class Calendar {
         appointmentBox.add(work);
         appointmentBox.add(school);
         appointmentBox.add(family);
+        appointmentBox.add(other);
 
-
+        // Creating Dialog Box
         int n = JOptionPane.showConfirmDialog(frame, appointmentBox, "Appointment Creation", JOptionPane.OK_CANCEL_OPTION, 0 , cal);
+
+        // Creating StatusBar String
         if (n != 0) {
             statusBar.setText("Status: Appointment Creation Cancelled");
         } else {
@@ -299,10 +342,13 @@ public class Calendar {
                 tags = tags + "School ";
             }
             if (family.isSelected()) {
-                tags = tags + "Family";
+                tags = tags + "Family ";
             }
-            String statusReport = "Name: " +  name.getText() + ", Date: " + date.getText() + ", From " + start.getValue()
-                    + " to " + end.getValue() + ", Tags: " + tags;
+            if (other.isSelected()) {
+                tags = tags + "Other";
+            }
+            String statusReport = "Name: " +  name.getText() + ", Date: " + date.getText() + ", From " + start.getSelectedItem()
+                    + " to " + end.getSelectedItem() + ", Tags: " + tags;
             statusBar.setText("Status: Appointment Created - " + statusReport);
         }
     }
