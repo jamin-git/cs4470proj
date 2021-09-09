@@ -65,8 +65,8 @@ public class Calendar {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
         // These dimension work on my computer screen, these are untested on other monitors / OS
-        frame.setMinimumSize(new Dimension(1000,800));
-        frame.setMaximumSize(new Dimension(1400,1100));
+        frame.setMinimumSize(new Dimension(1200,700));
+        frame.setMaximumSize(new Dimension(1600,1100));
 
         // Setting Up Menu Bar & Items
         initMenu();
