@@ -64,7 +64,8 @@ public class Calendar {
         frame = new JFrame("Calendar");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
-        frame.setMinimumSize(new Dimension(1000,700));
+        // These dimension work on my computer screen, these are untested on other monitors / OS
+        frame.setMinimumSize(new Dimension(1000,800));
         frame.setMaximumSize(new Dimension(1400,1100));
 
         // Setting Up Menu Bar & Items
@@ -131,6 +132,15 @@ public class Calendar {
         westButtons.setLayout(new BoxLayout(westButtons, BoxLayout.Y_AXIS));
         westButtons.setPreferredSize(new Dimension(200, 0));
 
+        // Initializing Button Icons
+        URL rArrow = getClass().getResource("ArrowR.png");
+        ImageIcon rightArrow = new ImageIcon(rArrow);
+
+        URL lArrow = getClass().getResource("ArrowL.png");
+        ImageIcon leftArrow = new ImageIcon(lArrow);
+
+
+
         // Adding Vertical Glue to Beginning of the BoxLayout
         westButtons.add(Box.createVerticalGlue());
 
@@ -146,8 +156,14 @@ public class Calendar {
         westButtons.add(Box.createRigidArea(new Dimension(0,10)));
 
         // Adding the Prev / Next Button
-        next = new JButton("Next");
-        prev = new JButton("Prev");
+        next = new JButton(rightArrow);
+        next.setText("Next ");
+        next.setHorizontalTextPosition(SwingConstants.LEFT);
+
+        prev = new JButton(leftArrow);
+        prev.setText(" Prev");
+        prev.setHorizontalTextPosition(SwingConstants.RIGHT);
+
         westFlow.add(prev);
         westFlow.add(next);
 
