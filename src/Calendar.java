@@ -225,19 +225,25 @@ public class Calendar {
     private void initMainArea() {
         // Initializing the mainArea Panel and the PlaceHolder view
         mainArea = new JPanel();
-        mainArea.setPreferredSize(new Dimension(1200, 800));
         mainArea.setLayout(new BorderLayout());
-        placeHolder = new JLabel();
-        placeHolder.setFont(verdana);
-        placeHolder.setHorizontalAlignment(JLabel.CENTER);
-        placeHolder.setVerticalAlignment(JLabel.CENTER);
 
-        // Defaults to DayView
-        changeDay();
+        DayView dV = new DayView();
+        mainArea.add(dV);
 
-        // Adding to the Frame
-        mainArea.add(placeHolder, BorderLayout.CENTER);
-        frame.getContentPane().add(mainArea);
+        JScrollPane s = new JScrollPane(mainArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        s.setViewportView(dV);
+        frame.getContentPane().add(s);
+//        placeHolder = new JLabel();
+//        placeHolder.setFont(verdana);
+//        placeHolder.setHorizontalAlignment(JLabel.CENTER);
+//        placeHolder.setVerticalAlignment(JLabel.CENTER);
+//
+//        // Defaults to DayView
+//        changeDay();
+//
+//        // Adding to the Frame
+//        mainArea.add(placeHolder, BorderLayout.CENTER);
+//        frame.getContentPane().add(mainArea);
     }
 
     private void changeMonth() {

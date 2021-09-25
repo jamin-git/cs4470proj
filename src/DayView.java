@@ -18,7 +18,7 @@ public class DayView extends JComponent {
 
     public DayView() {
         date = LocalDate.now();
-        initFrame();
+        //initFrame();
     }
     public DayView(LocalDate d, int x, int y) {
         date = d;
