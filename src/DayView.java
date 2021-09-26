@@ -5,11 +5,9 @@ import java.time.LocalDate;
 public class DayView extends JComponent {
 
     private LocalDate date;
-    int xSize = 600;
-    int ySize = 600;
-    int wxSize = 800;
-    int wySize = 800;
-    JFrame t = new JFrame();
+    int xSize = 800;
+    int ySize = 1250;
+
 
     private Color gray = new Color(209,209,209);
 
@@ -18,18 +16,6 @@ public class DayView extends JComponent {
 
     public DayView() {
         date = LocalDate.now();
-        //initFrame();
-    }
-    public DayView(LocalDate d, int x, int y) {
-        date = d;
-        xSize = x;
-        ySize = y;
-    }
-    private void initFrame() {
-        t.setVisible(true);
-        t.setSize(wxSize, wySize);
-        t.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        t.add(this);
     }
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -51,14 +37,19 @@ public class DayView extends JComponent {
         g.setColor(Color.BLACK);
         g.setFont(sfranklinGothic);
         FontMetrics sfm = g.getFontMetrics();
-        int c = 2 * y;
+        int c = y + 50;
         int count = 0;
-        while (count < 25) {
+        while (count < 24) {
             g.drawString(count + ": 00", 5, c + sfm.getAscent() / 2);
-            g.drawLine(50, c, ySize - 30, c);
+            g.drawLine(50, c, xSize - 30, c);
             c = c + 50;
             count++;
         }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(xSize, ySize);
     }
 
 

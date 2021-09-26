@@ -36,11 +36,15 @@ public class Calendar {
     JButton appointment;
 
     // Initializing Main Area Panels
-    JPanel mainArea;
     JLabel placeHolder;
+    JScrollPane mainSection;
 
     // Initializing the appointment dialog box
     JPanel appointmentBox;
+
+
+    // HashMap to Store EventDetails
+    //Hashmap<LocalDate d, EventDetails e>
 
     // Misc Variables
     int temp = 0;
@@ -223,16 +227,45 @@ public class Calendar {
         appointment.setFont(franklinGothic);
     }
     private void initMainArea() {
-        // Initializing the mainArea Panel and the PlaceHolder view
-        mainArea = new JPanel();
-        mainArea.setLayout(new BorderLayout());
-
         DayView dV = new DayView();
-        mainArea.add(dV);
+        mainSection = new JScrollPane(dV);
+        mainSection.setPreferredSize(new Dimension(600, 700));
+        frame.getContentPane().add(mainSection, BorderLayout.CENTER);
 
-        JScrollPane s = new JScrollPane(mainArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        s.setViewportView(dV);
-        frame.getContentPane().add(s);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Initializing the mainArea Panel and the PlaceHolder view
+//        mainArea = new JPanel();
+//        mainArea.setLayout(new BorderLayout());
+//
+//        DayView dV = new DayView();
+//        mainArea.add(dV);
+//
+//        JScrollPane s = new JScrollPane(mainArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//        s.setViewportView(dV);
+//        frame.getContentPane().add(s);
 //        placeHolder = new JLabel();
 //        placeHolder.setFont(verdana);
 //        placeHolder.setHorizontalAlignment(JLabel.CENTER);
@@ -379,17 +412,14 @@ public class Calendar {
         if (curr == sky) {
             westFlow.setBackground(lightBlue);
             westButtons.setBackground(lightBlue);
-            mainArea.setBackground(gray);
             statusBar.setText("Status: Changed to Sky Theme");
         } else if (curr == forest) {
             westFlow.setBackground(lightGreen);
             westButtons.setBackground(lightGreen);
-            mainArea.setBackground(gray);
             statusBar.setText("Status: Changed to Forest Theme");
         } else {
             westFlow.setBackground(lightPurple);
             westButtons.setBackground(lightPurple);
-            mainArea.setBackground(gray);
             statusBar.setText("Status: Changed to Lavender Theme");
         }
     }
