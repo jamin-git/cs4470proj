@@ -6,45 +6,47 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Calendar {
 
     // Initializing Main Frame
-    JFrame frame;
+    private JFrame frame;
 
     // Initializing MenuBar
-    JMenuBar menuBar;
-    JMenu file;
-    JMenu view;
-    JMenu theme;
-    JMenuItem exit;
-    JMenuItem dayView;
-    JMenuItem monthView;
-    JMenuItem sky;
-    JMenuItem forest;
-    JMenuItem lavender;
+    private JMenuBar menuBar;
+    private JMenu file;
+    private JMenu view;
+    private JMenu theme;
+    private JMenuItem exit;
+    private JMenuItem dayView;
+    private JMenuItem monthView;
+    private JMenuItem sky;
+    private JMenuItem forest;
+    private JMenuItem lavender;
 
     // Initializing Status Bar
-    JLabel statusBar;
+    private JLabel statusBar;
 
     // Initializing Control Buttons
-    JPanel westButtons;
-    JPanel westFlow;
-    JButton today;
-    JButton next;
-    JButton prev;
-    JButton appointment;
+    private JPanel westButtons;
+    private JPanel westFlow;
+    private JButton today;
+    private JButton next;
+    private JButton prev;
+    private JButton appointment;
 
     // Initializing Main Area Panels
-    JLabel placeHolder;
-    JScrollPane mainSection;
+    private JLabel placeHolder;
+    private JScrollPane mainSection;
 
     // Initializing the appointment dialog box
-    JPanel appointmentBox;
+    private JPanel appointmentBox;
 
 
-    // HashMap to Store EventDetails
-    //Hashmap<LocalDate d, EventDetails e>
+    // HashMap to Store EventDetails, Event Details are within an array to support multiple events
+    private static HashMap<LocalDate, ArrayList<EventDetails>> eventDetails = new HashMap<>();
 
     // Misc Variables
     int temp = 0;
@@ -233,6 +235,12 @@ public class Calendar {
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
 
 
+        // PlaceHolder code
+        placeHolder = new JLabel();
+        placeHolder.setFont(verdana);
+        placeHolder.setHorizontalAlignment(JLabel.CENTER);
+        placeHolder.setVerticalAlignment(JLabel.CENTER);
+
 
 
 
@@ -284,14 +292,17 @@ public class Calendar {
         DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
         String month = date.format(monthFormatter);
         placeHolder.setText("Month View: " + month);
+        mainSection.setViewportView(placeHolder);
         isDay = false;
         temp = 0;
         statusBar.setText("Status: System changed to Month View");
     }
     private void changeDay() {
-        LocalDate date = LocalDate.now();
-        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-        placeHolder.setText("Day View: " + day);
+//        LocalDate date = LocalDate.now();
+//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
+//        placeHolder.setText("Day View: " + day);
+
+        mainSection.setViewportView(new DayView());
         isDay = true;
         temp = 0;
         statusBar.setText("Status: System changed to Day View");
@@ -300,16 +311,18 @@ public class Calendar {
         temp++;
         LocalDate date = LocalDate.now();
         date = date.plusDays(temp);
-        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-        placeHolder.setText("Day View: " + day);
+        mainSection.setViewportView(new DayView(date));
+//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
+//        placeHolder.setText("Day View: " + day);
         statusBar.setText("Status: Moved Forward 1 Day");
     }
     private void prevDay() {
         temp--;
         LocalDate date = LocalDate.now();
         date = date.plusDays(temp);
-        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-        placeHolder.setText("Day View: " + day);
+        mainSection.setViewportView(new DayView(date));
+//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
+//        placeHolder.setText("Day View: " + day);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
     private void nextMonth() {
@@ -319,6 +332,7 @@ public class Calendar {
         date = date.plusMonths(temp);
         String month = date.format(monthFormatter);
         placeHolder.setText("Month View: " + month);
+        mainSection.setViewportView(placeHolder);
         statusBar.setText("Status: Moved Forward 1 Month");
     }
     private void prevMonth() {
@@ -328,6 +342,7 @@ public class Calendar {
         date = date.plusMonths(temp);
         String month = date.format(monthFormatter);
         placeHolder.setText("Month View: " + month);
+        mainSection.setViewportView(placeHolder);
         statusBar.setText("Status: Moved Backward 1 Month");
     }
 
@@ -351,8 +366,18 @@ public class Calendar {
 
 
         // Used a ComboBox for Time Picking
-        String[] times = {"12am", "1am", "2am", "3am", "4am", "5am", "6am", "7am", "8am", "9am", "10am", "11am", "12pm",
-                "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm", "11pm"};
+        String[] times = {"12:00am", "12:15am", "12:30am", "12:45am", "1:00am", "1:15am", "1:30am", "1:45am",
+                "2:00am", "2:15am", "2:30am", "2:45am", "3:00am", "3:15am", "3:30am", "3:45am",
+                "4:00am", "4:15am", "4:30am", "4:45am", "5:00am", "5:15am", "5:30am", "5:45am",
+                "6:00am", "6:15am", "6:30am", "6:45am", "7:00am", "7:15am", "7:30am", "7:45am",
+                "8:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
+                "10:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
+                "12:00pm", "12:15pm", "12:30pm", "12:45pm", "1:00pm", "1:15pm", "1:30pm", "1:45pm",
+                "2:00pm", "2:15pm", "2:30pm", "2:45pm", "3:00pm", "3:15pm", "3:30pm", "3:45pm",
+                "4:00pm", "4:15pm", "4:30pm", "4:45pm", "5:00pm", "5:15pm", "5:30pm", "5:45pm",
+                "6:00pm", "6:15pm", "6:30pm", "6:45pm", "7:00pm", "7:15pm", "7:30pm", "7:45pm",
+                "8:00pm", "8:15pm", "8:30pm", "8:45pm", "9:00pm", "9:15pm", "9:30pm", "9:45pm",
+                "10:00pm", "10:15pm", "10:30pm", "10:45pm", "11:00pm", "11:15pm", "11:30pm", "11:45pm"};
         JComboBox start = new JComboBox(times);
         JComboBox end = new JComboBox(times);
 
@@ -387,27 +412,63 @@ public class Calendar {
             statusBar.setText("Status: Appointment Creation Cancelled");
         } else {
             String tags = "";
+            ArrayList<String> tag = new ArrayList<>();
             if (vacation.isSelected()) {
                 tags = tags + "Vacation ";
+                tag.add("Vacation");
             }
             if (work.isSelected()) {
                 tags = tags + "Work ";
+                tag.add("Work");
             }
             if (school.isSelected()) {
                 tags = tags + "School ";
+                tag.add("School");
             }
             if (family.isSelected()) {
                 tags = tags + "Family ";
+                tag.add("Family");
             }
             if (other.isSelected()) {
                 tags = tags + "Other";
+                tag.add("Other");
             }
-            String statusReport = "Name: " +  name.getText() + ", Date: " + date.getText() + ", From " + start.getSelectedItem()
-                    + " to " + end.getSelectedItem() + ", Tags: " + tags;
-            statusBar.setText("Status: Appointment Created - " + statusReport);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+
+
+
+            EventDetails e = new EventDetails(name.getText(), LocalDate.parse(date.getText(), formatter), convertTime(start.getSelectedItem().toString()),
+                    convertTime(end.getSelectedItem().toString()), tag, Math.abs(start.getSelectedIndex() - end.getSelectedIndex()));
+
+            // Adding event details to the hashmap
+            if (eventDetails.containsKey(e.getDate())) {
+                eventDetails.get(e.getDate()).add(e);
+            } else {
+                ArrayList<EventDetails> list = new ArrayList<>();
+                list.add(e);
+                eventDetails.put(e.getDate(), list);
+            }
+
+            statusBar.setText("Status: Appointment Created - " + e);
+            System.out.println(eventDetails.toString());
         }
     }
 
+    private int convertTime(String time) {
+        String am = time.substring(time.length() - 2, time.length());
+        time = time.substring(0, time.length() - 2);
+        String temp = time.substring(0, time.length() - 3);
+        String temp2 = time.substring(time.length() - 2, time.length());
+        time = temp + temp2;
+        int ret = Integer.parseInt(time);
+        if (am.equals("pm")) {
+            ret = ret + 1200;
+        } else if (ret == 1200) {
+            ret = 0;
+        }
+        return ret;
+    }
     private void changeTheme(JMenuItem curr) {
         if (curr == sky) {
             westFlow.setBackground(lightBlue);
@@ -422,6 +483,10 @@ public class Calendar {
             westButtons.setBackground(lightPurple);
             statusBar.setText("Status: Changed to Lavender Theme");
         }
+    }
+
+    public static HashMap<LocalDate, ArrayList<EventDetails>> getEventDetails() {
+        return eventDetails;
     }
 
     public static void main(String[] args) {
