@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,10 +8,10 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Calendar {
+public class Calendar extends JFrame {
 
     // Initializing Main Frame
-    private JFrame frame;
+    private static JFrame frame;
 
     // Initializing MenuBar
     private JMenuBar menuBar;
@@ -27,7 +26,7 @@ public class Calendar {
     private JMenuItem lavender;
 
     // Initializing Status Bar
-    private JLabel statusBar;
+    private static JLabel statusBar;
 
     // Initializing Control Buttons
     private JPanel westButtons;
@@ -42,7 +41,10 @@ public class Calendar {
     private JScrollPane mainSection;
 
     // Initializing the appointment dialog box
-    private JPanel appointmentBox;
+    private static JPanel appointmentBox;
+
+    // DayView Component Initialization
+    private DayView dV = new DayView();
 
 
     // HashMap to Store EventDetails, Event Details are within an array to support multiple events
@@ -88,7 +90,6 @@ public class Calendar {
 
         // Basic Styling
         changeTheme(forest);
-
 
         frame.pack();
         frame.setVisible(true);
@@ -229,7 +230,6 @@ public class Calendar {
         appointment.setFont(franklinGothic);
     }
     private void initMainArea() {
-        DayView dV = new DayView();
         mainSection = new JScrollPane(dV);
         mainSection.setPreferredSize(new Dimension(600, 700));
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
@@ -449,13 +449,126 @@ public class Calendar {
                 list.add(e);
                 eventDetails.put(e.getDate(), list);
             }
-
             statusBar.setText("Status: Appointment Created - " + e);
-            System.out.println(eventDetails.toString());
         }
     }
 
-    private int convertTime(String time) {
+    public static void appointmentFilled(EventDetails event) {
+        // Configuring the Appointment Panel
+        appointmentBox = new JPanel();
+        appointmentBox.setLayout(new BoxLayout(appointmentBox, BoxLayout.Y_AXIS));
+
+        // Determining the Current Day
+        LocalDate currDate = LocalDate.now();
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        String day = currDate.format(dayFormatter);
+
+        // Calendar Icon Initialization
+        URL calURL = Calendar.class.getResource("cal.png");
+        ImageIcon cal = new ImageIcon(calURL);
+
+        // TextField Initialization
+        JTextField name = new JTextField(5);
+        name.setText(event.getName());
+        JTextField date = new JTextField(day,5);
+        date.setText(event.getDate().format(dayFormatter));
+
+
+        // Used a ComboBox for Time Picking
+        String[] times = {"12:00am", "12:15am", "12:30am", "12:45am", "1:00am", "1:15am", "1:30am", "1:45am",
+                "2:00am", "2:15am", "2:30am", "2:45am", "3:00am", "3:15am", "3:30am", "3:45am",
+                "4:00am", "4:15am", "4:30am", "4:45am", "5:00am", "5:15am", "5:30am", "5:45am",
+                "6:00am", "6:15am", "6:30am", "6:45am", "7:00am", "7:15am", "7:30am", "7:45am",
+                "8:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
+                "10:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
+                "12:00pm", "12:15pm", "12:30pm", "12:45pm", "1:00pm", "1:15pm", "1:30pm", "1:45pm",
+                "2:00pm", "2:15pm", "2:30pm", "2:45pm", "3:00pm", "3:15pm", "3:30pm", "3:45pm",
+                "4:00pm", "4:15pm", "4:30pm", "4:45pm", "5:00pm", "5:15pm", "5:30pm", "5:45pm",
+                "6:00pm", "6:15pm", "6:30pm", "6:45pm", "7:00pm", "7:15pm", "7:30pm", "7:45pm",
+                "8:00pm", "8:15pm", "8:30pm", "8:45pm", "9:00pm", "9:15pm", "9:30pm", "9:45pm",
+                "10:00pm", "10:15pm", "10:30pm", "10:45pm", "11:00pm", "11:15pm", "11:30pm", "11:45pm"};
+        JComboBox start = new JComboBox(times);
+        start.setSelectedIndex((event.getStart() / 100));
+        JComboBox end = new JComboBox(times);
+        end.setSelectedIndex((event.getEnd() / 100));
+
+
+        // JCheckBox Initialization
+        JCheckBox vacation = new JCheckBox("Vacation");
+        JCheckBox work = new JCheckBox("Work");
+        JCheckBox school = new JCheckBox("School");
+        JCheckBox family = new JCheckBox("Family");
+        JCheckBox other = new JCheckBox("Other");
+        for (String string : event.getTags()) {
+            if (string.equals("Vacation")) {
+                vacation.setSelected(true);
+            } else if (string.equals("Work")) {
+                work.setSelected(true);
+            } else if (string.equals("School")) {
+                school.setSelected(true);
+            } else if (string.equals("Family")) {
+                family.setSelected(true);
+            } else if (string.equals("Other")) {
+                other.setSelected(true);
+            }
+        }
+
+        // Adding JLabels & Inputs
+        appointmentBox.add(new JLabel("Enter Appointment Name: "));
+        appointmentBox.add(name);
+        appointmentBox.add(new JLabel("Enter Date: "));
+        appointmentBox.add(date);
+        appointmentBox.add(new JLabel("Enter Start Time: "));
+        appointmentBox.add(start);
+        appointmentBox.add(new JLabel("Enter End Time: "));
+        appointmentBox.add(end);
+        appointmentBox.add(vacation);
+        appointmentBox.add(work);
+        appointmentBox.add(school);
+        appointmentBox.add(family);
+        appointmentBox.add(other);
+
+        // Creating Dialog Box
+        int pane = JOptionPane.showConfirmDialog(frame, appointmentBox, "Appointment Creation", JOptionPane.OK_CANCEL_OPTION, 0 , cal);
+
+        // Creating StatusBar String
+        if (pane != 0) {
+            statusBar.setText("Status: Appointment Creation Cancelled");
+        } else {
+            String tags = "";
+            ArrayList<String> tag = new ArrayList<>();
+            if (vacation.isSelected()) {
+                tags = tags + "Vacation ";
+                tag.add("Vacation");
+            }
+            if (work.isSelected()) {
+                tags = tags + "Work ";
+                tag.add("Work");
+            }
+            if (school.isSelected()) {
+                tags = tags + "School ";
+                tag.add("School");
+            }
+            if (family.isSelected()) {
+                tags = tags + "Family ";
+                tag.add("Family");
+            }
+            if (other.isSelected()) {
+                tags = tags + "Other";
+                tag.add("Other");
+            }
+
+
+
+             event = new EventDetails(name.getText(), LocalDate.parse(date.getText(), dayFormatter), convertTime(start.getSelectedItem().toString()),
+                    convertTime(end.getSelectedItem().toString()), tag, Math.abs(start.getSelectedIndex() - end.getSelectedIndex()));
+
+            statusBar.setText("Status: Appointment Created - " + event);
+        }
+    }
+
+
+    private static int convertTime(String time) {
         String am = time.substring(time.length() - 2, time.length());
         time = time.substring(0, time.length() - 2);
         String temp = time.substring(0, time.length() - 3);

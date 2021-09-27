@@ -1,3 +1,5 @@
+import javax.swing.*;
+import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -8,6 +10,7 @@ public class EventDetails {
     private int end;
     private ArrayList<String> tags;
     private int time;
+    private Rectangle boundingRectangle;
 
     public EventDetails(String name, LocalDate date, int start, int end, ArrayList<String> tags, int time) {
         this.name = name;
@@ -61,6 +64,14 @@ public class EventDetails {
     public void setTime(int time) {
         this.time = time;
     }
+
+    public void setBoundingRectangle(Rectangle rect) {
+        boundingRectangle = rect;
+    }
+    public Rectangle getBoundingRectangle() {
+        return boundingRectangle;
+    }
+
 
     public static void main(String[] args) {
 

@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -21,6 +23,23 @@ public class DayView extends JComponent {
 
     public DayView() {
         date = LocalDate.now();
+
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                int x = e.getX();
+                int y = e.getY();
+                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+                if (list != null) {
+                    for (EventDetails event : list) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                            System.out.println("Its Working!");
+                            Calendar.appointmentFilled(event);
+                            e.consume();
+                        }
+                    }
+                }
+            }
+        });
     }
     public DayView(LocalDate date) {
         this.date = date;
@@ -87,7 +106,9 @@ public class DayView extends JComponent {
 
                 // First and Third inputs are the horizontal padding, 2nd and 4th get the starting pos and the ending pos
                 int yEventPosition = (numStart / 100) * i + 50 + temp;
-                g.fillRect(40, yEventPosition, xSize - 80, height);
+                Rectangle rect = new Rectangle(40, yEventPosition, xSize - 80, height);
+                e.setBoundingRectangle(rect);
+                g.fillRoundRect(40, yEventPosition, xSize - 80, height, 25, 25);
                 g.setColor(Color.BLACK);
                 g.drawString(e.getName(), 50, yEventPosition + sfm.getAscent());
             }
@@ -116,16 +137,16 @@ public class DayView extends JComponent {
 
 
     // Getters / Setters
-    private LocalDate getDate() {
+    public LocalDate getDate() {
         return date;
     }
-    private void setDate(LocalDate n) {
+    public void setDate(LocalDate n) {
         date = n;
     }
-    private void setSizex(int x) {
+    public void setSizex(int x) {
         xSize = x;
     }
-    private void setSizey(int y) {
+    public void setSizey(int y) {
         xSize = y;
     }
 
