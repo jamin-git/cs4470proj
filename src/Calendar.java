@@ -604,6 +604,15 @@ public class Calendar extends JFrame {
             statusBar.setText("Status: Appointment Created - " + event);
         }
     }
+    public static void addMap(EventDetails e) {
+        if (eventDetails.containsKey(e.getDate())) {
+            eventDetails.get(e.getDate()).add(e);
+        } else {
+            ArrayList<EventDetails> list = new ArrayList<>();
+            list.add(e);
+            eventDetails.put(e.getDate(), list);
+        }
+    }
 
 
     private static int convertTime(String time) {

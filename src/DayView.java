@@ -1,7 +1,10 @@
+import jdk.jfr.Event;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -24,36 +27,36 @@ public class DayView extends JComponent {
 
     public DayView() {
         date = LocalDate.now();
-
-        addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
+        addDoubleClick();
+        addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
                 boolean isEvent = false;
+                EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
                 ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-                if (list != null) {
-                    for (EventDetails event : list) {
-                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                            Calendar.appointmentFilled(event);
-                            list.remove(event);
-                            e.consume();
-                            isEvent = true;
-                            break;
-                        }
-                    }
-                }
+//                if (list != null) {
+//                    for (EventDetails event : list) {
+//                        if (event.getBoundingRectangle().contains(x, y)) {
+//                            isEvent = true;
+//                            System.out.println("Event Dragged!");
+//                        }
+//                    }
+//                }
                 if (!isEvent) {
                     for (Rectangle rect : rectList) {
-                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-                            int t = rectList.indexOf(rect) * 4;
-                            EventDetails newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, null, 0);
-                            if (t == 92) {
-                                newEvent.setEndIndex(t);
-                            }
-                            Calendar.appointmentFilled(newEvent);
-                            e.consume();
+                        int t = rectList.indexOf(rect) * 4;
+                        if (rect.contains(x, y)) {
+                            newEvent.setStart(t);
                             break;
                         }
+                        if (t == 92) {
+                            newEvent.setEndIndex(t + 3);
+                        } else {
+                            newEvent.setEndIndex(t + 4);
+                        }
+                        Calendar.addMap(newEvent);
+                        repaint();
                     }
                 }
             }
@@ -61,6 +64,7 @@ public class DayView extends JComponent {
     }
     public DayView(LocalDate date) {
         this.date = date;
+        addDoubleClick();
     }
 
     public void paintComponent(Graphics g) {
@@ -141,6 +145,41 @@ public class DayView extends JComponent {
         return new Dimension(xSize, ySize);
     }
 
+    private void addDoubleClick() {
+        addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                int x = e.getX();
+                int y = e.getY();
+                boolean isEvent = false;
+                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+                if (list != null) {
+                    for (EventDetails event : list) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                            Calendar.appointmentFilled(event);
+                            list.remove(event);
+                            e.consume();
+                            isEvent = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect) * 4;
+                            EventDetails newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 0);
+                            if (t == 92) {
+                                newEvent.setEndIndex(t + 3);
+                            }
+                            Calendar.appointmentFilled(newEvent);
+                            e.consume();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     // Getters / Setters
     public LocalDate getDate() {
