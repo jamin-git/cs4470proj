@@ -14,6 +14,7 @@ public class DayView extends JComponent {
     private LocalDate date;
     int xSize = 800;
     int ySize = 1250;
+    private ArrayList<Rectangle> rectList = new ArrayList<>();
 
 
     private Color gray = new Color(209,209,209);
@@ -28,13 +29,30 @@ public class DayView extends JComponent {
             public void mousePressed(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
+                boolean isEvent = false;
                 ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
                 if (list != null) {
                     for (EventDetails event : list) {
                         if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                            System.out.println("Its Working!");
                             Calendar.appointmentFilled(event);
+                            list.remove(event);
                             e.consume();
+                            isEvent = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect) * 4;
+                            EventDetails newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, null, 0);
+                            if (t == 92) {
+                                newEvent.setEndIndex(t);
+                            }
+                            Calendar.appointmentFilled(newEvent);
+                            e.consume();
+                            break;
                         }
                     }
                 }
@@ -71,6 +89,9 @@ public class DayView extends JComponent {
         int i = 44;
         while (count < 24) {
             g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
+            if (rectList.size() < 25) {
+                rectList.add(new Rectangle(35, ypos, xSize - 70, i));
+            }
             g.drawRect(35, ypos, xSize - 70, i);
             count++;
             ypos += i;
@@ -113,21 +134,6 @@ public class DayView extends JComponent {
                 g.drawString(e.getName(), 50, yEventPosition + sfm.getAscent());
             }
         }
-
-
-        /*
-        // Creating Equally Spaced Lines
-        g.setColor(Color.BLACK);
-        g.setFont(sfranklinGothic);
-        FontMetrics sfm = g.getFontMetrics();
-        int c = y + 50;
-        int count = 0;
-        while (count < 24) {
-            g.drawString(count + ": 00", 5, c + sfm.getAscent() / 2);
-            g.drawLine(50, c, xSize - 30, c);
-            c = c + 50;
-            count++;
-        } */
     }
 
     @Override

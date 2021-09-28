@@ -8,15 +8,19 @@ public class EventDetails {
     private LocalDate date;
     private int start;
     private int end;
+    private int startIndex;
+    private int endIndex;
     private ArrayList<String> tags;
     private int time;
     private Rectangle boundingRectangle;
 
-    public EventDetails(String name, LocalDate date, int start, int end, ArrayList<String> tags, int time) {
+    public EventDetails(String name, LocalDate date, int start, int end, int startIndex, int endIndex, ArrayList<String> tags, int time) {
         this.name = name;
         this.date = date;
         this.start = start;
         this.end = end;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
         this.tags = tags;
         this.time = time;
     }
@@ -72,6 +76,21 @@ public class EventDetails {
         return boundingRectangle;
     }
 
+    public int getEndIndex() {
+        return endIndex;
+    }
+
+    public void setEndIndex(int endIndex) {
+        this.endIndex = endIndex;
+    }
+
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    public void setStartIndex(int startIndex) {
+        this.startIndex = startIndex;
+    }
 
     public static void main(String[] args) {
 
