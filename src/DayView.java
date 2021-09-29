@@ -1,6 +1,7 @@
 import jdk.jfr.Event;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,40 +28,13 @@ public class DayView extends JComponent {
 
     public DayView() {
         date = LocalDate.now();
-        addDoubleClick();
-        addMouseMotionListener(new MouseMotionAdapter() {
-            public void mouseDragged(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
-                boolean isEvent = false;
-                EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
-                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-//                if (list != null) {
-//                    for (EventDetails event : list) {
-//                        if (event.getBoundingRectangle().contains(x, y)) {
-//                            isEvent = true;
-//                            System.out.println("Event Dragged!");
-//                        }
-//                    }
-//                }
-                if (!isEvent) {
-                    for (Rectangle rect : rectList) {
-                        int t = rectList.indexOf(rect) * 4;
-                        if (rect.contains(x, y)) {
-                            newEvent.setStart(t);
-                            break;
-                        }
-                        if (t == 92) {
-                            newEvent.setEndIndex(t + 3);
-                        } else {
-                            newEvent.setEndIndex(t + 4);
-                        }
-                        Calendar.addMap(newEvent);
-                        repaint();
-                    }
-                }
-            }
-        });
+        Handlerclass handler = new Handlerclass();
+        this.addMouseListener(handler);
+        this.addMouseMotionListener(handler);
+
+
+
+        //addDoubleClick();
     }
     public DayView(LocalDate date) {
         this.date = date;
@@ -145,6 +119,99 @@ public class DayView extends JComponent {
         return new Dimension(xSize, ySize);
     }
 
+    private class Handlerclass extends MouseInputAdapter {
+
+        EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
+        boolean temp = false;
+        boolean start = false;
+        boolean inEvent = false;
+
+        public void mousePressed(MouseEvent e) {
+            int x = e.getX();
+            int y = e.getY();
+            boolean isEvent = false;
+            ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+            if (list != null) {
+                for (EventDetails event : list) {
+                    if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                        Calendar.appointmentFilled(event);
+                        list.remove(event);
+                        e.consume();
+                        isEvent = true;
+                        repaint();
+                        break;
+                    }
+                }
+            }
+            if (!isEvent) {
+                for (Rectangle rect : rectList) {
+                    if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
+                        int t = rectList.indexOf(rect) * 4;
+                        newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 0);
+                        if (t == 92) {
+                            newEvent.setEndIndex(t + 3);
+                        }
+                        Calendar.appointmentFilled(newEvent);
+                        e.consume();
+                        repaint();
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void mouseReleased(MouseEvent e) {
+            temp = false;
+            start = false;
+            inEvent = false;
+            newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            int x = e.getX();
+            int y = e.getY();
+            boolean isEvent = false;
+
+
+            ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+            if (list != null) {
+                for (EventDetails event : list) {
+                    if (event.getBoundingRectangle().contains(x, y)) {
+                        for (Rectangle rect : rectList) {
+                            if (rect.contains(x, y)) {
+                                int t = rectList.indexOf(rect) * 4;
+                                Calendar.updatePrevEvent(event, t);
+                                repaint();
+                            }
+                        }
+                        isEvent = true;
+                    }
+                }
+            }
+
+            if (!isEvent) {
+                if (!temp) {
+                    Calendar.addMap(newEvent);
+                    temp = true;
+                }
+                if (Calendar.getEventDetails().get(date) != null) {
+                    for (Rectangle rect : rectList) {
+                        if (rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect) * 4;
+                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
+                            if (!start) {
+                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
+                                start = true;
+                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
+                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
+                            }
+                            repaint();
+                        }
+                    }
+                }
+            }
+        }
+    }
     private void addDoubleClick() {
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -159,6 +226,7 @@ public class DayView extends JComponent {
                             list.remove(event);
                             e.consume();
                             isEvent = true;
+                            repaint();
                             break;
                         }
                     }
@@ -173,6 +241,7 @@ public class DayView extends JComponent {
                             }
                             Calendar.appointmentFilled(newEvent);
                             e.consume();
+                            repaint();
                             break;
                         }
                     }
