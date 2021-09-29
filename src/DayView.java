@@ -1,16 +1,12 @@
-import jdk.jfr.Event;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 public class DayView extends JComponent {
@@ -19,6 +15,7 @@ public class DayView extends JComponent {
     int xSize = 800;
     int ySize = 1250;
     private ArrayList<Rectangle> rectList = new ArrayList<>();
+    int yLine = -1;
 
 
     private Color gray = new Color(209,209,209);
@@ -31,14 +28,12 @@ public class DayView extends JComponent {
         Handlerclass handler = new Handlerclass();
         this.addMouseListener(handler);
         this.addMouseMotionListener(handler);
-
-
-
-        //addDoubleClick();
     }
     public DayView(LocalDate date) {
         this.date = date;
-        addDoubleClick();
+        Handlerclass handler = new Handlerclass();
+        this.addMouseListener(handler);
+        this.addMouseMotionListener(handler);
     }
 
     public void paintComponent(Graphics g) {
@@ -46,6 +41,13 @@ public class DayView extends JComponent {
 
         // Creating Rectangle
         g.setColor(gray);
+        if (Calendar.getTheme() == "Sky") {
+            g.setColor(new Color(157,189,209));
+        } else if (Calendar.getTheme() == "Forest") {
+            g.setColor(new Color(157,209,166));
+        } else if (Calendar.getTheme() == "Lavender") {
+            g.setColor(new Color(186,157,209) );
+        }
         g.drawRect(0,0, xSize, ySize);
         g.fillRect(0,0, xSize, ySize);
 
@@ -67,9 +69,19 @@ public class DayView extends JComponent {
         int i = 44;
         while (count < 24) {
             g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
-            if (rectList.size() < 25) {
-                rectList.add(new Rectangle(35, ypos, xSize - 70, i));
+//            if (rectList.size() < 25) {
+//                rectList.add(new Rectangle(35, ypos, xSize - 70, i));
+//            }
+            if (rectList.size() < 97) {
+                rectList.add(new Rectangle(35, ypos + 0 * i / 4, xSize - 70, i / 4));
+                rectList.add(new Rectangle(35, ypos + 1 * i / 4, xSize - 70, i / 4));
+                rectList.add(new Rectangle(35, ypos + 2 * i / 4, xSize - 70, i / 4));
+                rectList.add(new Rectangle(35, ypos + 3 * i / 4, xSize - 70, i / 4));
             }
+//            g.drawRect(35, ypos + 0 * i / 4, xSize - 70, i / 4);
+//            g.drawRect(35, ypos + 1 * i / 4, xSize - 70, i / 4);
+//            g.drawRect(35, ypos + 2* i / 4, xSize - 70, i / 4);
+//            g.drawRect(35, ypos + 3 * i / 4, xSize - 70, i / 4);
             g.drawRect(35, ypos, xSize - 70, i);
             count++;
             ypos += i;
@@ -83,15 +95,17 @@ public class DayView extends JComponent {
 
                 // Setting Color of Event Box
                 if (e.getTags().contains("Other")) {
-                    g.setColor(Color.CYAN);
+                    g.setColor(new Color(66, 142, 89));
                 } else if (e.getTags().contains("Family")) {
-                    g.setColor(Color.GRAY);
+                    g.setColor(new Color(243, 166, 14));
                 } else if (e.getTags().contains("School")) {
-                    g.setColor(Color.MAGENTA);
+                    g.setColor(new Color(12, 85, 109));
                 } else if (e.getTags().contains("Work")) {
-                    g.setColor(Color.green);
+                    g.setColor(new Color(142, 70, 66));
+                } else if (e.getTags().contains("Vacation")) {
+                    g.setColor(new Color(87, 213, 203));
                 } else {
-                    g.setColor(Color.RED);
+                    g.setColor(new Color(141, 135, 145));
                 }
 
                 int numStart = e.getStart();
@@ -112,6 +126,10 @@ public class DayView extends JComponent {
                 g.drawString(e.getName(), 50, yEventPosition + sfm.getAscent());
             }
         }
+
+        // Painting Time-Of-Day Line
+        g.setColor(Color.RED);
+        g.drawLine(35, yLine, xSize - 35, yLine);
     }
 
     @Override
@@ -121,12 +139,36 @@ public class DayView extends JComponent {
 
     private class Handlerclass extends MouseInputAdapter {
 
-        EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
-        boolean temp = false;
+        // Placeholder EventDetails object
+        EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
+
+        //
+        boolean singleEvent = false;
+
+        // Used to set the time of a dragged event
         boolean start = false;
-        boolean inEvent = false;
+
+        // This is used to detect if an the mouse click or drag is on an event
         boolean isEvent = false;
 
+        // This is used to detect if a mouseDrag has started within the mouseDragged method
+        boolean mouseDragged = false;
+
+        // Used to keep track of events when dragging already made events
+        int count = -1;
+
+        // Methods / Code for Time-Of-Day Line
+        public void mouseMoved(MouseEvent e) {
+            int y = e.getY();
+            yLine = y;
+            repaint();
+        }
+        public void mouseExited(MouseEvent e) {
+            yLine = -1;
+            repaint();
+        }
+
+        // Methods for the Double Click Functionality
         public void mousePressed(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
@@ -135,7 +177,7 @@ public class DayView extends JComponent {
             if (list != null) {
                 for (EventDetails event : list) {
                     if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                        Calendar.appointmentFilled(event);
+                        Calendar.appointmentFilled(event, false);
                         list.remove(event);
                         e.consume();
                         isEvent = true;
@@ -147,12 +189,17 @@ public class DayView extends JComponent {
             if (!isEvent) {
                 for (Rectangle rect : rectList) {
                     if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-                        int t = rectList.indexOf(rect) * 4;
-                        newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 0);
+//                        int t = rectList.indexOf(rect) * 4;
+                        int t = rectList.indexOf(rect);
+                        newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 1);
                         if (t == 92) {
                             newEvent.setEndIndex(t + 3);
+                        } else if (t == 93) {
+                            newEvent.setEndIndex(t + 2);
+                        } else if (t == 94) {
+                            newEvent.setEndIndex(t + 1);
                         }
-                        Calendar.appointmentFilled(newEvent);
+                        Calendar.appointmentFilled(newEvent, true);
                         e.consume();
                         repaint();
                         break;
@@ -161,97 +208,71 @@ public class DayView extends JComponent {
             }
         }
 
+        // This method is utilized to reset mouseDrag events when they are over
         public void mouseReleased(MouseEvent e) {
-            temp = false;
+            singleEvent = false;
             start = false;
-            inEvent = false;
             isEvent = false;
-            newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
+            mouseDragged = false;
+            count = -1;
+            newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
         }
 
+        // Dragging functionality
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
 
+
+            // Code for Dragging Already Created Event
             ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-            if (list != null) {
-                for (EventDetails event : list) {
-                    if (event.getBoundingRectangle().contains(x, y)) {
-                        inEvent = true;
-                        isEvent = true;
-                    }
-                    if (inEvent) {
-                        for (Rectangle rect : rectList) {
-                            if (rect.contains(x, y)) {
-                                int t = rectList.indexOf(rect) * 4;
-                                Calendar.updatePrevEvent(event, t);
-                            }
-                            repaint();
+            if (list != null && !singleEvent) {
+                if (!mouseDragged) {
+                    mouseDragged = true;
+                    for (EventDetails event : list) {
+                        count++;
+                        if (event.getBoundingRectangle().contains(x, y)) {
+                            isEvent = true;
+                            break;
                         }
-                        break;
+                    }
+                }
+                if (isEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (rect.contains(x, y)) {
+//                            int t = rectList.indexOf(rect) * 4;
+                            int t = rectList.indexOf(rect);
+                            Calendar.updatePrevEvent(list.get(count), t);
+                        }
+                        repaint();
                     }
                 }
             }
 
-//            if (!isEvent) {
-//                if (!temp) {
-//                    Calendar.addMap(newEvent);
-//                    temp = true;
-//                }
-//                if (Calendar.getEventDetails().get(date) != null) {
-//                    for (Rectangle rect : rectList) {
-//                        if (rect.contains(x, y)) {
-//                            int t = rectList.indexOf(rect) * 4;
-//                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
-//                            if (!start) {
-//                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
-//                                start = true;
-//                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
-//                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
-//                            }
-//                            repaint();
-//                        }
-//                    }
-//                }
-//            }
-        }
-    }
-    private void addDoubleClick() {
-        addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
-                boolean isEvent = false;
-                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-                if (list != null) {
-                    for (EventDetails event : list) {
-                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                            Calendar.appointmentFilled(event);
-                            list.remove(event);
-                            e.consume();
-                            isEvent = true;
-                            repaint();
-                            break;
-                        }
-                    }
+            // Code for Drag Creating a new event
+            if (!isEvent) {
+                if (!singleEvent) {
+                    Calendar.addMap(newEvent);
+                    singleEvent = true;
                 }
-                if (!isEvent) {
+                if (Calendar.getEventDetails().get(date) != null) {
                     for (Rectangle rect : rectList) {
-                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-                            int t = rectList.indexOf(rect) * 4;
-                            EventDetails newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 0);
-                            if (t == 92) {
-                                newEvent.setEndIndex(t + 3);
+                        if (rect.contains(x, y)) {
+//                            int t = rectList.indexOf(rect) * 4;
+                            int t = rectList.indexOf(rect);
+                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
+                            if (!start) {
+                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
+                                start = true;
+                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
+                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
                             }
-                            Calendar.appointmentFilled(newEvent);
-                            e.consume();
                             repaint();
-                            break;
                         }
                     }
                 }
             }
-        });
+        }
     }
 
     // Getters / Setters

@@ -63,10 +63,13 @@ public class Calendar extends JFrame {
     Font franklinGothic = new Font("Franklin Gothic", Font.BOLD, 14);
 
     // Colors
-    Color lightGreen = new Color(157,209,166);
-    Color lightBlue = new Color(157,189,209);
-    Color lightPurple = new Color(186,157,209);
-    Color gray = new Color(209,209,209);
+    private Color lightGreen = new Color(102, 184, 115);
+    private Color lightBlue = new Color(102, 152, 184);
+    private Color lightPurple = new Color(147, 102, 184);
+    private Color gray = new Color(209,209,209);
+
+    // Theme
+    private static String themeString = "";
 
 
     // Time Key
@@ -75,7 +78,7 @@ public class Calendar extends JFrame {
             "4:00am", "4:15am", "4:30am", "4:45am", "5:00am", "5:15am", "5:30am", "5:45am",
             "6:00am", "6:15am", "6:30am", "6:45am", "7:00am", "7:15am", "7:30am", "7:45am",
             "8:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
-            "10:00am", "8:15am", "8:30am", "8:45am", "9:00am", "9:15am", "9:30am", "9:45am",
+            "10:00am", "10:15am", "10:30am", "10:45am", "11:00am", "11:15am", "11:30am", "11:45am",
             "12:00pm", "12:15pm", "12:30pm", "12:45pm", "1:00pm", "1:15pm", "1:30pm", "1:45pm",
             "2:00pm", "2:15pm", "2:30pm", "2:45pm", "3:00pm", "3:15pm", "3:30pm", "3:45pm",
             "4:00pm", "4:15pm", "4:30pm", "4:45pm", "5:00pm", "5:15pm", "5:30pm", "5:45pm",
@@ -361,6 +364,7 @@ public class Calendar extends JFrame {
         statusBar.setText("Status: Moved Backward 1 Month");
     }
 
+    // Creates a new appointment
     private void appointment() {
         // Configuring the Appointment Panel
         appointmentBox = new JPanel();
@@ -458,7 +462,8 @@ public class Calendar extends JFrame {
         }
     }
 
-    public static void appointmentFilled(EventDetails event) {
+    // Edits an existing appointment, called by the DayView class
+    public static void appointmentFilled(EventDetails event, boolean isNew) {
         // Configuring the Appointment Panel
         JPanel newBox = new JPanel();
         newBox.setLayout(new BoxLayout(newBox, BoxLayout.Y_AXIS));
@@ -529,13 +534,15 @@ public class Calendar extends JFrame {
         // Creating StatusBar String
         if (pane != 0) {
             statusBar.setText("Status: Appointment Creation Cancelled");
-            if (!(event.getTime() == 0)) {
-                if (eventDetails.containsKey(event.getDate())) {
-                    eventDetails.get(event.getDate()).add(event);
-                } else {
-                    ArrayList<EventDetails> list = new ArrayList<>();
-                    list.add(event);
-                    eventDetails.put(event.getDate(), list);
+            if (!isNew) {
+                if (!(event.getTime() == 0)) {
+                    if (eventDetails.containsKey(event.getDate())) {
+                        eventDetails.get(event.getDate()).add(event);
+                    } else {
+                        ArrayList<EventDetails> list = new ArrayList<>();
+                        list.add(event);
+                        eventDetails.put(event.getDate(), list);
+                    }
                 }
             }
         } else {
@@ -568,7 +575,6 @@ public class Calendar extends JFrame {
                      convertTime(start.getSelectedItem().toString()), convertTime(end.getSelectedItem().toString()),
                      start.getSelectedIndex(), end.getSelectedIndex(),
                      tag, Math.abs(start.getSelectedIndex() - end.getSelectedIndex()));
-            System.out.println(e.getBoundingRectangle());
 
             // Adding event details to the hashmap
             if (eventDetails.containsKey(e.getDate())) {
@@ -583,22 +589,30 @@ public class Calendar extends JFrame {
         }
     }
 
+    // Updates an event's start time
     public static void updateEventStart(EventDetails e, int t) {
         e.setStartIndex(t);
         e.setStart(convertTime(times[e.getStartIndex()]));
     }
+    // Updates an events end time and time variable
     public static void updateEventEnd(EventDetails e, int t) {
         e.setEndIndex(t);
         e.setEnd(convertTime(times[e.getEndIndex()]));
         e.setTime(Math.abs(e.getStartIndex() - e.getEndIndex()));
     }
+
+    // Updates an event that is already created & is being dragged
     public static void updatePrevEvent(EventDetails e, int t) {
+        while (t + e.getTime() > 95) {
+            t--;
+        }
         e.setStartIndex(t);
         e.setStart(convertTime(times[e.getStartIndex()]));
         e.setEndIndex(t + e.getTime());
         e.setEnd(convertTime(times[e.getEndIndex()]));
     }
 
+    // This code adds an eventDetails object to the hashMap
     public static void addMap(EventDetails e) {
         if (eventDetails.containsKey(e.getDate())) {
             eventDetails.get(e.getDate()).add(e);
@@ -609,20 +623,26 @@ public class Calendar extends JFrame {
         }
     }
 
-
+    // This method converts the time from the combobox to an integer (Military Time, e.g 100 == 1pm)
     private static int convertTime(String time) {
-        String am = time.substring(time.length() - 2, time.length());
+        String timeOfDay = time.substring(time.length() - 2);
         time = time.substring(0, time.length() - 2);
         String temp = time.substring(0, time.length() - 3);
-        String temp2 = time.substring(time.length() - 2, time.length());
+        String temp2 = time.substring(time.length() - 2);
         time = temp + temp2;
         int ret = Integer.parseInt(time);
-        if (am.equals("pm")) {
-            if (ret != 1200) {
+        if (timeOfDay.equals("pm")) {
+            if (ret != 1200 && ret != 1215 && ret != 1230 && ret != 1245) {
                 ret = ret + 1200;
             }
-        } else if (ret == 1200 || ret == 1215 || ret == 1230 || ret == 1245) {
+        } else if (ret == 1200) {
             ret = 0;
+        } else if (ret == 1215) {
+            ret = 15;
+        } else if (ret == 1230) {
+            ret = 30;
+        } else if (ret == 1245) {
+            ret = 45;
         }
         return ret;
     }
@@ -630,16 +650,22 @@ public class Calendar extends JFrame {
         if (curr == sky) {
             westFlow.setBackground(lightBlue);
             westButtons.setBackground(lightBlue);
+            themeString = "Sky";
             statusBar.setText("Status: Changed to Sky Theme");
         } else if (curr == forest) {
             westFlow.setBackground(lightGreen);
             westButtons.setBackground(lightGreen);
+            themeString = "Forest";
             statusBar.setText("Status: Changed to Forest Theme");
         } else {
             westFlow.setBackground(lightPurple);
             westButtons.setBackground(lightPurple);
+            themeString = "Lavender";
             statusBar.setText("Status: Changed to Lavender Theme");
         }
+    }
+    public static String getTheme() {
+        return themeString;
     }
 
     public static HashMap<LocalDate, ArrayList<EventDetails>> getEventDetails() {
