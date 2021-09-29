@@ -125,6 +125,7 @@ public class DayView extends JComponent {
         boolean temp = false;
         boolean start = false;
         boolean inEvent = false;
+        boolean isEvent = false;
 
         public void mousePressed(MouseEvent e) {
             int x = e.getX();
@@ -164,52 +165,55 @@ public class DayView extends JComponent {
             temp = false;
             start = false;
             inEvent = false;
+            isEvent = false;
             newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 0);
         }
 
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            boolean isEvent = false;
-
 
             ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
             if (list != null) {
                 for (EventDetails event : list) {
                     if (event.getBoundingRectangle().contains(x, y)) {
+                        inEvent = true;
+                        isEvent = true;
+                    }
+                    if (inEvent) {
                         for (Rectangle rect : rectList) {
                             if (rect.contains(x, y)) {
                                 int t = rectList.indexOf(rect) * 4;
                                 Calendar.updatePrevEvent(event, t);
-                                repaint();
                             }
+                            repaint();
                         }
-                        isEvent = true;
+                        break;
                     }
                 }
             }
 
-            if (!isEvent) {
-                if (!temp) {
-                    Calendar.addMap(newEvent);
-                    temp = true;
-                }
-                if (Calendar.getEventDetails().get(date) != null) {
-                    for (Rectangle rect : rectList) {
-                        if (rect.contains(x, y)) {
-                            int t = rectList.indexOf(rect) * 4;
-                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
-                            if (!start) {
-                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
-                                start = true;
-                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
-                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
-                            }
-                            repaint();
-                        }
-                    }
-                }
-            }
+//            if (!isEvent) {
+//                if (!temp) {
+//                    Calendar.addMap(newEvent);
+//                    temp = true;
+//                }
+//                if (Calendar.getEventDetails().get(date) != null) {
+//                    for (Rectangle rect : rectList) {
+//                        if (rect.contains(x, y)) {
+//                            int t = rectList.indexOf(rect) * 4;
+//                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
+//                            if (!start) {
+//                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
+//                                start = true;
+//                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
+//                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
+//                            }
+//                            repaint();
+//                        }
+//                    }
+//                }
+//            }
         }
     }
     private void addDoubleClick() {
