@@ -91,8 +91,4 @@ public class EventDetails {
     public void setStartIndex(int startIndex) {
         this.startIndex = startIndex;
     }
-
-    public static void main(String[] args) {
-
-    }
 }

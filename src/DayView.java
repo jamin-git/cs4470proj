@@ -288,9 +288,4 @@ public class DayView extends JComponent {
     public void setSizey(int y) {
         xSize = y;
     }
-
-
-    public static void main(String [] args) {
-        DayView go = new DayView();
-    }
 }
