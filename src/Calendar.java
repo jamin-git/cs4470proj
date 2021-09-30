@@ -1,4 +1,3 @@
-import jdk.jfr.Event;
 
 import javax.swing.*;
 import java.awt.*;
@@ -249,58 +248,18 @@ public class Calendar extends JFrame {
         appointment.setFont(franklinGothic);
     }
     private void initMainArea() {
+
+        // Initialization of the ScrollPane containing DayView
         mainSection = new JScrollPane(dV);
         mainSection.setPreferredSize(new Dimension(600, 700));
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
 
 
-        // PlaceHolder code
+        // PlaceHolder code for MonthView
         placeHolder = new JLabel();
         placeHolder.setFont(verdana);
         placeHolder.setHorizontalAlignment(JLabel.CENTER);
         placeHolder.setVerticalAlignment(JLabel.CENTER);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // Initializing the mainArea Panel and the PlaceHolder view
-//        mainArea = new JPanel();
-//        mainArea.setLayout(new BorderLayout());
-//
-//        DayView dV = new DayView();
-//        mainArea.add(dV);
-//
-//        JScrollPane s = new JScrollPane(mainArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//        s.setViewportView(dV);
-//        frame.getContentPane().add(s);
-//        placeHolder = new JLabel();
-//        placeHolder.setFont(verdana);
-//        placeHolder.setHorizontalAlignment(JLabel.CENTER);
-//        placeHolder.setVerticalAlignment(JLabel.CENTER);
-//
-//        // Defaults to DayView
-//        changeDay();
-//
-//        // Adding to the Frame
-//        mainArea.add(placeHolder, BorderLayout.CENTER);
-//        frame.getContentPane().add(mainArea);
     }
 
     private void changeMonth() {
@@ -314,9 +273,6 @@ public class Calendar extends JFrame {
         statusBar.setText("Status: System changed to Month View");
     }
     private void changeDay() {
-//        LocalDate date = LocalDate.now();
-//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-//        placeHolder.setText("Day View: " + day);
         dV.setDate(LocalDate.now());
         mainSection.setViewportView(dV);
         isDay = true;
@@ -329,8 +285,6 @@ public class Calendar extends JFrame {
         date = date.plusDays(temp);
         dV.setDate(date);
         mainSection.setViewportView(dV);
-//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-//        placeHolder.setText("Day View: " + day);
         statusBar.setText("Status: Moved Forward 1 Day");
     }
     private void prevDay() {
@@ -339,8 +293,6 @@ public class Calendar extends JFrame {
         date = date.plusDays(temp);
         dV.setDate(date);
         mainSection.setViewportView(dV);
-//        String day = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-//        placeHolder.setText("Day View: " + day);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
     private void nextMonth() {
@@ -444,25 +396,21 @@ public class Calendar extends JFrame {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
 
-
+            // Creating a new event
             EventDetails e = new EventDetails(name.getText(), LocalDate.parse(date.getText(), formatter),
                     convertTime(start.getSelectedItem().toString()), convertTime(end.getSelectedItem().toString()),
                     start.getSelectedIndex(), end.getSelectedIndex(),
                     tag, Math.abs(start.getSelectedIndex() - end.getSelectedIndex()));
 
             // Adding event details to the hashmap
-            if (eventDetails.containsKey(e.getDate())) {
-                eventDetails.get(e.getDate()).add(e);
-            } else {
-                ArrayList<EventDetails> list = new ArrayList<>();
-                list.add(e);
-                eventDetails.put(e.getDate(), list);
-            }
+            addMap(e);
+
+            // Updating the Status Bar
             statusBar.setText("Status: Appointment Created - " + e);
         }
     }
 
-    // Edits an existing appointment, called by the DayView class
+    // Edits an existing appointment, called by the DayView class. Boolean is used to determine if this is a new event
     public static void appointmentFilled(EventDetails event, boolean isNew) {
         // Configuring the Appointment Panel
         JPanel newBox = new JPanel();
@@ -534,6 +482,8 @@ public class Calendar extends JFrame {
         // Creating StatusBar String
         if (pane != 0) {
             statusBar.setText("Status: Appointment Creation Cancelled");
+
+            // Creates an arrayList if this is the first appointment for a certain day
             if (!isNew) {
                 if (!(event.getTime() == 0)) {
                     if (eventDetails.containsKey(event.getDate())) {
@@ -570,21 +520,16 @@ public class Calendar extends JFrame {
             }
 
 
-
+            // Creating the new event
             EventDetails e = new EventDetails(name.getText(), LocalDate.parse(date.getText(), dayFormatter),
                      convertTime(start.getSelectedItem().toString()), convertTime(end.getSelectedItem().toString()),
                      start.getSelectedIndex(), end.getSelectedIndex(),
                      tag, Math.abs(start.getSelectedIndex() - end.getSelectedIndex()));
 
             // Adding event details to the hashmap
-            if (eventDetails.containsKey(e.getDate())) {
-                eventDetails.get(e.getDate()).add(e);
-            } else {
-                ArrayList<EventDetails> list = new ArrayList<>();
-                list.add(e);
-                eventDetails.put(e.getDate(), list);
-            }
+            addMap(e);
 
+            // Updating the Status Bar
             statusBar.setText("Status: Appointment Created - " + event);
         }
     }
@@ -646,6 +591,8 @@ public class Calendar extends JFrame {
         }
         return ret;
     }
+
+    // This method updates the theme of the application
     private void changeTheme(JMenuItem curr) {
         if (curr == sky) {
             westFlow.setBackground(lightBlue);
@@ -664,10 +611,12 @@ public class Calendar extends JFrame {
             statusBar.setText("Status: Changed to Lavender Theme");
         }
     }
+    // This method gets the String representation of the theme, used by dayView
     public static String getTheme() {
         return themeString;
     }
 
+    // Getter for the event details hashmap
     public static HashMap<LocalDate, ArrayList<EventDetails>> getEventDetails() {
         return eventDetails;
     }

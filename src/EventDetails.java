@@ -25,8 +25,6 @@ public class EventDetails {
         this.time = time;
     }
 
-
-
     public String toString() {
         return "Name: " +  name + ", Date: " + date + ", From " + start
                 + " to " + end + ", Tags: " + tags;

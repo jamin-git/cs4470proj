@@ -12,11 +12,11 @@ import java.util.HashMap;
 public class DayView extends JComponent {
 
     private LocalDate date;
-    int xSize = 800;
-    int ySize = 1250;
+    private int xSize = 800;
+    private int ySize = 1250;
     private ArrayList<Rectangle> rectList = new ArrayList<>();
-    int yLine = -1;
-
+    private int yLine = -1;
+    private Handlerclass handler = new Handlerclass();
 
     private Color gray = new Color(209,209,209);
 
@@ -24,28 +24,20 @@ public class DayView extends JComponent {
     private Font sfranklinGothic = new Font("Franklin Gothic", Font.BOLD, 10);
 
     public DayView() {
-        date = LocalDate.now();
-        Handlerclass handler = new Handlerclass();
-        this.addMouseListener(handler);
-        this.addMouseMotionListener(handler);
-    }
-    public DayView(LocalDate date) {
-        this.date = date;
-        Handlerclass handler = new Handlerclass();
-        this.addMouseListener(handler);
-        this.addMouseMotionListener(handler);
+        setDate(LocalDate.now());
     }
 
+    // Painting the Application
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         // Creating Rectangle
         g.setColor(gray);
-        if (Calendar.getTheme() == "Sky") {
+        if (Calendar.getTheme().equals("Sky")) {
             g.setColor(new Color(157,189,209));
-        } else if (Calendar.getTheme() == "Forest") {
+        } else if (Calendar.getTheme().equals("Forest")) {
             g.setColor(new Color(157,209,166));
-        } else if (Calendar.getTheme() == "Lavender") {
+        } else if (Calendar.getTheme().equals("Lavender")) {
             g.setColor(new Color(186,157,209) );
         }
         g.drawRect(0,0, xSize, ySize);
@@ -69,19 +61,12 @@ public class DayView extends JComponent {
         int i = 44;
         while (count < 24) {
             g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
-//            if (rectList.size() < 25) {
-//                rectList.add(new Rectangle(35, ypos, xSize - 70, i));
-//            }
             if (rectList.size() < 97) {
                 rectList.add(new Rectangle(35, ypos + 0 * i / 4, xSize - 70, i / 4));
                 rectList.add(new Rectangle(35, ypos + 1 * i / 4, xSize - 70, i / 4));
                 rectList.add(new Rectangle(35, ypos + 2 * i / 4, xSize - 70, i / 4));
                 rectList.add(new Rectangle(35, ypos + 3 * i / 4, xSize - 70, i / 4));
             }
-//            g.drawRect(35, ypos + 0 * i / 4, xSize - 70, i / 4);
-//            g.drawRect(35, ypos + 1 * i / 4, xSize - 70, i / 4);
-//            g.drawRect(35, ypos + 2* i / 4, xSize - 70, i / 4);
-//            g.drawRect(35, ypos + 3 * i / 4, xSize - 70, i / 4);
             g.drawRect(35, ypos, xSize - 70, i);
             count++;
             ypos += i;
@@ -95,17 +80,17 @@ public class DayView extends JComponent {
 
                 // Setting Color of Event Box
                 if (e.getTags().contains("Other")) {
-                    g.setColor(new Color(66, 142, 89));
+                    g.setColor(new Color(66, 142, 89, 200));
                 } else if (e.getTags().contains("Family")) {
-                    g.setColor(new Color(243, 166, 14));
+                    g.setColor(new Color(243, 166, 14, 200));
                 } else if (e.getTags().contains("School")) {
-                    g.setColor(new Color(12, 85, 109));
+                    g.setColor(new Color(12, 85, 109, 200));
                 } else if (e.getTags().contains("Work")) {
-                    g.setColor(new Color(142, 70, 66));
+                    g.setColor(new Color(142, 70, 66, 200));
                 } else if (e.getTags().contains("Vacation")) {
-                    g.setColor(new Color(87, 213, 203));
+                    g.setColor(new Color(87, 213, 203, 200));
                 } else {
-                    g.setColor(new Color(141, 135, 145));
+                    g.setColor(new Color(141, 135, 145, 200));
                 }
 
                 int numStart = e.getStart();
@@ -159,8 +144,7 @@ public class DayView extends JComponent {
 
         // Methods / Code for Time-Of-Day Line
         public void mouseMoved(MouseEvent e) {
-            int y = e.getY();
-            yLine = y;
+            yLine = e.getY();
             repaint();
         }
         public void mouseExited(MouseEvent e) {
@@ -189,7 +173,6 @@ public class DayView extends JComponent {
             if (!isEvent) {
                 for (Rectangle rect : rectList) {
                     if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-//                        int t = rectList.indexOf(rect) * 4;
                         int t = rectList.indexOf(rect);
                         newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 1);
                         if (t == 92) {
@@ -240,7 +223,6 @@ public class DayView extends JComponent {
                 if (isEvent) {
                     for (Rectangle rect : rectList) {
                         if (rect.contains(x, y)) {
-//                            int t = rectList.indexOf(rect) * 4;
                             int t = rectList.indexOf(rect);
                             Calendar.updatePrevEvent(list.get(count), t);
                         }
@@ -258,7 +240,6 @@ public class DayView extends JComponent {
                 if (Calendar.getEventDetails().get(date) != null) {
                     for (Rectangle rect : rectList) {
                         if (rect.contains(x, y)) {
-//                            int t = rectList.indexOf(rect) * 4;
                             int t = rectList.indexOf(rect);
                             ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
                             if (!start) {
@@ -275,17 +256,28 @@ public class DayView extends JComponent {
         }
     }
 
+
+    // Updates the mouseListeners when a new date is needed
+    private void updateListener() {
+        handler = new Handlerclass();
+    }
     // Getters / Setters
     public LocalDate getDate() {
         return date;
     }
+    // Setting the date and updating the mouseListeners
     public void setDate(LocalDate n) {
         date = n;
+        removeMouseListener(handler);
+        removeMouseMotionListener(handler);
+        updateListener();
+        addMouseMotionListener(handler);
+        addMouseListener(handler);
     }
     public void setSizex(int x) {
         xSize = x;
     }
     public void setSizey(int y) {
-        xSize = y;
+        ySize = y;
     }
 }
