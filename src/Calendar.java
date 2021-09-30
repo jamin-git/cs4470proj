@@ -85,6 +85,11 @@ public class Calendar extends JFrame {
             "8:00pm", "8:15pm", "8:30pm", "8:45pm", "9:00pm", "9:15pm", "9:30pm", "9:45pm",
             "10:00pm", "10:15pm", "10:30pm", "10:45pm", "11:00pm", "11:15pm", "11:30pm", "11:45pm"};
 
+
+    // Images
+    private ImageIcon cal = new ImageIcon(getClass().getResource("Cal.png"));
+    private static ImageIcon cal2 = new ImageIcon(Calendar.class.getResource("Cal.png"));
+
     Calendar() {
         // Setting Up Frame Functionality
         frame = new JFrame("Calendar");
@@ -328,8 +333,8 @@ public class Calendar extends JFrame {
         String day = currDate.format(dayFormatter);
 
         // Calendar Icon Initialization
-        URL calURL = getClass().getResource("cal.png");
-        ImageIcon cal = new ImageIcon(calURL);
+//        URL calURL = getClass().getResource("Cal.png");
+//        ImageIcon cal = new ImageIcon(calURL);
 
         // TextField Initialization
         JTextField name = new JTextField(5);
@@ -422,8 +427,8 @@ public class Calendar extends JFrame {
         String day = currDate.format(dayFormatter);
 
         // Calendar Icon Initialization
-        URL calURL = Calendar.class.getResource("cal.png");
-        ImageIcon cal = new ImageIcon(calURL);
+//        URL calURL = Calendar.class.getResource("CalS.png");
+//        ImageIcon cal = new ImageIcon(calURL);
 
         // TextField Initialization
         JTextField name = new JTextField(5);
@@ -477,7 +482,7 @@ public class Calendar extends JFrame {
         newBox.add(other);
 
         // Creating Dialog Box
-        int pane = JOptionPane.showConfirmDialog(frame, newBox, "Appointment Creation", JOptionPane.OK_CANCEL_OPTION, 0 , cal);
+        int pane = JOptionPane.showConfirmDialog(frame, newBox, "Appointment Creation", JOptionPane.OK_CANCEL_OPTION, 0 , cal2);
 
         // Creating StatusBar String
         if (pane != 0) {
