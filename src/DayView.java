@@ -205,6 +205,7 @@ public class DayView extends JComponent {
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
+            boolean wentUp = false;
 
 
             // Code for Dragging Already Created Event
@@ -247,6 +248,13 @@ public class DayView extends JComponent {
                                 start = true;
                             } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
                                 Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
+                            } else if (t <= l.get(l.indexOf(newEvent)).getStartIndex()) {
+                                int index = l.indexOf(newEvent);
+                                if (l.get(index).getStartIndex() < 95) {
+                                    Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex() + 1);
+                                } else {
+                                    Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex());
+                                }
                             }
                             repaint();
                         }

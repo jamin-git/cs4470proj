@@ -46,6 +46,9 @@ public class Calendar extends JFrame {
     // DayView Component Initialization
     private DayView dV = new DayView();
 
+    // MonthView Component Initialization
+    private MonthView mV = new MonthView();
+
 
     // HashMap to Store EventDetails, Event Details are within an array to support multiple events
     private static HashMap<LocalDate, ArrayList<EventDetails>> eventDetails = new HashMap<>();
@@ -268,11 +271,8 @@ public class Calendar extends JFrame {
     }
 
     private void changeMonth() {
-        LocalDate date = LocalDate.now();
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
-        String month = date.format(monthFormatter);
-        placeHolder.setText("Month View: " + month);
-        mainSection.setViewportView(placeHolder);
+        mV.setDate(LocalDate.now());
+        mainSection.setViewportView(mV);
         isDay = false;
         temp = 0;
         statusBar.setText("Status: System changed to Month View");
@@ -303,21 +303,17 @@ public class Calendar extends JFrame {
     private void nextMonth() {
         temp++;
         LocalDate date = LocalDate.now();
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
         date = date.plusMonths(temp);
-        String month = date.format(monthFormatter);
-        placeHolder.setText("Month View: " + month);
-        mainSection.setViewportView(placeHolder);
+        mV.setDate(date);
+        mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Forward 1 Month");
     }
     private void prevMonth() {
         temp--;
         LocalDate date = LocalDate.now();
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
         date = date.plusMonths(temp);
-        String month = date.format(monthFormatter);
-        placeHolder.setText("Month View: " + month);
-        mainSection.setViewportView(placeHolder);
+        mV.setDate(date);
+        mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Backward 1 Month");
     }
 
