@@ -125,7 +125,7 @@ public class DayView extends JComponent {
     private class Handlerclass extends MouseInputAdapter {
 
         // Placeholder EventDetails object
-        EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
+        EventDetails newEvent = new EventDetails("New Event", date, 0, 1, 0, 0, new ArrayList<String>(), 1);
 
         //
         boolean singleEvent = false;
