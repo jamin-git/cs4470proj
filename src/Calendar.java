@@ -38,7 +38,7 @@ public class Calendar extends JFrame {
 
     // Initializing Main Area Panels
     private JLabel placeHolder;
-    private JScrollPane mainSection;
+    private static JScrollPane mainSection;
 
     // Initializing the appointment dialog box
     private static JPanel appointmentBox;
@@ -615,6 +615,12 @@ public class Calendar extends JFrame {
     // This method gets the String representation of the theme, used by dayView
     public static String getTheme() {
         return themeString;
+    }
+    public static int getScrollPaneWidth() {
+        return mainSection.getWidth();
+    }
+    public static int getScrollPaneHeight() {
+        return mainSection.getHeight();
     }
 
     // Getter for the event details hashmap

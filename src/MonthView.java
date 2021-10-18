@@ -6,8 +6,8 @@ import java.time.format.FormatStyle;
 
 public class MonthView extends JComponent {
     private LocalDate date;
-    int xSize = 800;
-    int ySize = 1250;
+    int xSize = 1065;
+    int ySize = 800;
     private Color gray = new Color(209,209,209);
 
 
@@ -17,6 +17,13 @@ public class MonthView extends JComponent {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        // Updating Window Size
+        xSize = Calendar.getScrollPaneWidth();
+        ySize = Calendar.getScrollPaneHeight();
+        System.out.println("Width: " + xSize);
+        System.out.println("Height: " + ySize);
+
 
         // Creating Rectangle
         g.setColor(gray);
@@ -38,6 +45,18 @@ public class MonthView extends JComponent {
         int x = (xSize / 2) - fm.stringWidth(dateString) / 2;
         int y = fm.getHeight();
         g.drawString(dateString, x, y + 5);
+
+
+        // Painting 6x7 Grid with resizability
+        int width = xSize;
+        int height = ySize;
+        int viewWidth = xSize - 200;
+        int viewHeight = ySize - 200;
+        for (int i = 1; i < 7; i++) {
+            for (int j = 1; j < 8; j++) {
+                g.drawRect(j * viewWidth / 7,i * viewHeight / 6, viewWidth / 7, viewHeight / 6);
+            }
+        }
     }
 
     @Override
