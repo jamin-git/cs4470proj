@@ -168,7 +168,7 @@ public class MonthView extends JComponent {
                     }
                     // Storing event and other vars
                     EventDetails e = list.get(i);
-                    Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(temp)) + initGrayBoxes - 1);
+                    Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(e.getDate())) + initGrayBoxes - 1);
                     int vertPadding = (i * eventHeight + 2);
 
                     // Drawing event box
@@ -219,7 +219,11 @@ public class MonthView extends JComponent {
 
     private class Handlerclass extends MouseInputAdapter {
         EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
+        boolean mouseDragged = false;
+        int count = 0;
+        ArrayList<EventDetails> list = monthMap.get(date);
 
+        boolean inEvent = false;
         public void mouseClicked(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
@@ -250,6 +254,45 @@ public class MonthView extends JComponent {
                             e.consume();
                             repaint();
                             break;
+                        }
+                    }
+                }
+            }
+        }
+        public void mouseReleased(MouseEvent e) {
+            mouseDragged = false;
+            inEvent = false;
+            count = 0;
+        }
+        public void mouseDragged(MouseEvent e) {
+            int currentDragX = e.getX();
+            int currentDragY = e.getY();
+
+            if (monthMap != null || monthMap.isEmpty()) {
+                for (LocalDate temp : monthMap.keySet()) {
+                    list = monthMap.get(temp);
+                    if (list != null && !inEvent) {
+                        for (EventDetails event : list) {
+                            if (event.getBoundingRectangle().contains(currentDragX, currentDragY)) {
+                                inEvent = true;
+                                break;
+                            }
+                            count++;
+                        }
+                        if (inEvent) {
+                            break;
+                        }
+                    }
+                }
+                if (inEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (rect.contains(currentDragX, currentDragY)) {
+                            int t = rectList.indexOf(rect);
+                            if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
+                                list.get(count).setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
+                            }
+                            System.out.println("Dragged Event: " + list.get(count).getDate());
+                            repaint();
                         }
                     }
                 }
