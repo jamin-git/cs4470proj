@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MonthView extends JComponent {
-    private LocalDate date;
+    private LocalDate date = LocalDate.now();
     private int xSize = 1065;
     private int ySize = 800;
     private Color gray = new Color(209,209,209);
@@ -38,7 +38,7 @@ public class MonthView extends JComponent {
 
         // Resetting the list of Rectangles to resize them, also resetting monthMap
         rectList.clear();
-        monthMap.clear();
+        //monthMap.clear();
 
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
@@ -116,21 +116,21 @@ public class MonthView extends JComponent {
         // Filling Inactive Cells and Numbering
         for (int row = 0; row < rowCount; row++) {
             for (int col = 0; col < columnCount; col++) {
-                g.setColor(gray);
+                g.setColor(new Color(255, 255, 255, 130));
                 if (!monthStart) {
                     if (arrDays[col].equals(dayString)) {
                         col--;
                         monthStart = true;
                     } else {
-                        g.fillRect(xOffset + (col * rectWidth) + 5, yOffset + (row * rectHeight) + 5,
-                                rectWidth - 10, rectHeight - 10);
+                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                rectWidth, rectHeight);
                         initGrayBoxes++;
                     }
                 } else {
                     countDays++;
                     if (countDays > date.lengthOfMonth()) {
-                        g.fillRect(xOffset + (col * rectWidth) + 5, yOffset + (row * rectHeight) + 5,
-                                rectWidth - 10, rectHeight - 10);
+                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                rectWidth, rectHeight);
                         countDays--;
                     } else {
                         g.setColor(Color.black);
@@ -146,11 +146,11 @@ public class MonthView extends JComponent {
         String monthString = month.format(date);
 
         // Creating Temporary Map to hold all Months Values
-        for (LocalDate temp : map.keySet()) {
-            if (month.format(temp).equals(monthString)) {
-                monthMap.put(temp, map.get(temp));
-            }
-        }
+//        for (LocalDate temp : map.keySet()) {
+//            if (month.format(temp).equals(monthString)) {
+//                //monthMap.put(temp, map.get(temp));
+//            }
+//        }
 
         DateTimeFormatter dayInt = DateTimeFormatter.ofPattern("d");
         int eventHeight = 15;
@@ -158,55 +158,57 @@ public class MonthView extends JComponent {
         g.setFont(sfranklinGothic);
         fm = g.getFontMetrics();
 
-        for (LocalDate temp : monthMap.keySet()) {
-            ArrayList<EventDetails> list = monthMap.get(temp);
-            int size = (rectHeight - 20) / eventHeight;
-            if (list != null) {
-                for (int i = 0; i < list.size(); i++) {
-                    if (i >= size) {
-                        break;
-                    }
-                    // Storing event and other vars
-                    EventDetails e = list.get(i);
-                    Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(e.getDate())) + initGrayBoxes - 1);
-                    int vertPadding = (i * eventHeight + 2);
+        for (LocalDate temp : map.keySet()) {
+            if (month.format(temp).equals(monthString)) {
+                ArrayList<EventDetails> list = map.get(temp);
+                int size = (rectHeight - 20) / eventHeight;
+                if (list != null) {
+                    for (int i = 0; i < list.size(); i++) {
+                        if (i >= size) {
+                            break;
+                        }
+                        // Storing event and other vars
+                        EventDetails e = list.get(i);
+                        Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(e.getDate())) + initGrayBoxes - 1);
+                        int vertPadding = (i * eventHeight + 2);
 
-                    // Drawing event box
+                        // Drawing event box
 
-                    // Setting Color of Event Box
-                    if (e.getTags().contains("Other")) {
-                        g.setColor(new Color(66, 142, 89, 200));
-                    } else if (e.getTags().contains("Family")) {
-                        g.setColor(new Color(243, 166, 14, 200));
-                    } else if (e.getTags().contains("School")) {
-                        g.setColor(new Color(12, 85, 109, 200));
-                    } else if (e.getTags().contains("Work")) {
-                        g.setColor(new Color(142, 70, 66, 200));
-                    } else if (e.getTags().contains("Vacation")) {
-                        g.setColor(new Color(87, 213, 203, 200));
-                    } else {
-                        g.setColor(new Color(141, 135, 145, 200));
-                    }
-                    // Drawing Event Rectangle + Setting Bounding Box of Event
-                    Rectangle rect = new Rectangle((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight);
-                    g.fillRoundRect((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight, 10, 10);
-                    e.setBoundingRectangle(rect);
+                        // Setting Color of Event Box
+                        if (e.getTags().contains("Other")) {
+                            g.setColor(new Color(66, 142, 89, 200));
+                        } else if (e.getTags().contains("Family")) {
+                            g.setColor(new Color(243, 166, 14, 200));
+                        } else if (e.getTags().contains("School")) {
+                            g.setColor(new Color(12, 85, 109, 200));
+                        } else if (e.getTags().contains("Work")) {
+                            g.setColor(new Color(142, 70, 66, 200));
+                        } else if (e.getTags().contains("Vacation")) {
+                            g.setColor(new Color(87, 213, 203, 200));
+                        } else {
+                            g.setColor(new Color(141, 135, 145, 200));
+                        }
+                        // Drawing Event Rectangle + Setting Bounding Box of Event
+                        Rectangle rect = new Rectangle((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight);
+                        g.fillRoundRect((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight, 10, 10);
+                        e.setBoundingRectangle(rect);
 
-                    // Resizing Name
-                    String tempName = e.getName();
-                    String ellipse = "...";
-                    if (fm.stringWidth(tempName) > (int) curr.getWidth() - 10) {
-                        for (int j = tempName.length(); j > 0; j--) {
-                            tempName = tempName.substring(0, j);
-                            if (fm.stringWidth(tempName) + fm.stringWidth(ellipse) < (int) curr.getWidth() - 10) {
-                                tempName = tempName + ellipse;
-                                break;
+                        // Resizing Name
+                        String tempName = e.getName();
+                        String ellipse = "...";
+                        if (fm.stringWidth(tempName) > (int) curr.getWidth() - 10) {
+                            for (int j = tempName.length(); j > 0; j--) {
+                                tempName = tempName.substring(0, j);
+                                if (fm.stringWidth(tempName) + fm.stringWidth(ellipse) < (int) curr.getWidth() - 10) {
+                                    tempName = tempName + ellipse;
+                                    break;
+                                }
                             }
                         }
+                        // Drawing Name
+                        g.setColor(Color.BLACK);
+                        g.drawString(tempName, (int) curr.getX() + 7, (int) curr.getY() + 11 + vertPadding + fm.getHeight());
                     }
-                    // Drawing Name
-                    g.setColor(Color.BLACK);
-                    g.drawString(tempName, (int) curr.getX() + 7, (int) curr.getY() + 11 + vertPadding + fm.getHeight());
                 }
             }
         }
@@ -221,23 +223,31 @@ public class MonthView extends JComponent {
         EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
         boolean mouseDragged = false;
         int count = 0;
+        HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
         ArrayList<EventDetails> list = monthMap.get(date);
+        DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
+        String monthString = month.format(date);
 
         boolean inEvent = false;
         public void mouseClicked(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
             boolean isEvent = false;
-            if (monthMap != null || monthMap.isEmpty()) {
-                for (LocalDate temp : monthMap.keySet()) {
-                    ArrayList<EventDetails> list = monthMap.get(temp);
-                    for (EventDetails event : list) {
-                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                            Calendar.appointmentFilled(event, false);
-                            list.remove(event);
-                            e.consume();
-                            isEvent = true;
-                            repaint();
+            if (map != null || map.isEmpty()) {
+                for (LocalDate temp : map.keySet()) {
+                    if (month.format(temp).equals(monthString)) {
+                        ArrayList<EventDetails> list = monthMap.get(temp);
+                        for (EventDetails event : list) {
+                            if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                                Calendar.appointmentFilled(event, false);
+                                list.remove(event);
+                                e.consume();
+                                isEvent = true;
+                                repaint();
+                                break;
+                            }
+                        }
+                        if (isEvent) {
                             break;
                         }
                     }
@@ -291,7 +301,6 @@ public class MonthView extends JComponent {
                             if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
                                 list.get(count).setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
                             }
-                            System.out.println("Dragged Event: " + list.get(count).getDate());
                             repaint();
                         }
                     }
