@@ -281,7 +281,8 @@ public class MonthView extends JComponent {
 
             if ((map != null || map.isEmpty())) {
                 for (LocalDate temp : map.keySet()) {
-                    if (month.format(temp).equals(monthString)) {
+                    if (month.format(temp).equals(monthString) && !mouseDragged) {
+                        mouseDragged = true;
                         list = map.get(temp);
                         if (list != null && !inEvent) {
                             for (EventDetails event : list) {
@@ -307,17 +308,21 @@ public class MonthView extends JComponent {
                         if (rect.contains(currentDragX, currentDragY)) {
                             int t = rectList.indexOf(rect);
                             if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
-
+                                LocalDate oldDate = list.get(count).getDate();
                                 LocalDate newDate = LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1);
                                 EventDetails temp = list.get(count);
                                 temp.setDate(newDate);
                                 Calendar.addMap(temp);
                                 list.remove(count);
-
+                                if (list.size() == 0) {
+                                    map.remove(oldDate);
+                                    list = map.get(newDate);
+                                }
                             }
                         }
                         repaint();
                     }
+                    mouseDragged = false;
                 }
             }
         }
