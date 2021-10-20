@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MonthView extends JComponent {
     private LocalDate date = LocalDate.now();
@@ -17,7 +19,6 @@ public class MonthView extends JComponent {
     private int rowCount = 6;
     private int columnCount = 7;
     private ArrayList<Rectangle> rectList = new ArrayList<>();
-    private HashMap<LocalDate, ArrayList<EventDetails>> monthMap = new HashMap<>();
     private String[] arrDays = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
     private Font franklinGothic = new Font("Franklin Gothic", Font.BOLD, 14);
@@ -36,9 +37,8 @@ public class MonthView extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Resetting the list of Rectangles to resize them, also resetting monthMap
+        // Resetting the list of Rectangles to resize them
         rectList.clear();
-        //monthMap.clear();
 
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
@@ -145,13 +145,6 @@ public class MonthView extends JComponent {
         DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
         String monthString = month.format(date);
 
-        // Creating Temporary Map to hold all Months Values
-//        for (LocalDate temp : map.keySet()) {
-//            if (month.format(temp).equals(monthString)) {
-//                //monthMap.put(temp, map.get(temp));
-//            }
-//        }
-
         DateTimeFormatter dayInt = DateTimeFormatter.ofPattern("d");
         int eventHeight = 15;
         int topDist = 15;
@@ -212,6 +205,13 @@ public class MonthView extends JComponent {
                 }
             }
         }
+        Iterator iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry mapElement = (Map.Entry)iterator.next();
+            ArrayList<EventDetails> d = (ArrayList<EventDetails>)mapElement.getValue();
+            System.out.println(mapElement.getKey() + " : " + d);
+        }
+        System.out.println("------------------------------------");
     }
 
     @Override
@@ -224,7 +224,7 @@ public class MonthView extends JComponent {
         boolean mouseDragged = false;
         int count = 0;
         HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
-        ArrayList<EventDetails> list = monthMap.get(date);
+        ArrayList<EventDetails> list = map.get(date);
         DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
         String monthString = month.format(date);
 
@@ -236,7 +236,7 @@ public class MonthView extends JComponent {
             if (map != null || map.isEmpty()) {
                 for (LocalDate temp : map.keySet()) {
                     if (month.format(temp).equals(monthString)) {
-                        ArrayList<EventDetails> list = monthMap.get(temp);
+                        list = map.get(temp);
                         for (EventDetails event : list) {
                             if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
                                 Calendar.appointmentFilled(event, false);
@@ -273,36 +273,50 @@ public class MonthView extends JComponent {
             mouseDragged = false;
             inEvent = false;
             count = 0;
+            list = null;
         }
         public void mouseDragged(MouseEvent e) {
             int currentDragX = e.getX();
             int currentDragY = e.getY();
 
-            if (monthMap != null || monthMap.isEmpty()) {
-                for (LocalDate temp : monthMap.keySet()) {
-                    list = monthMap.get(temp);
-                    if (list != null && !inEvent) {
-                        for (EventDetails event : list) {
-                            if (event.getBoundingRectangle().contains(currentDragX, currentDragY)) {
-                                inEvent = true;
-                                break;
+            if ((map != null || map.isEmpty())) {
+                for (LocalDate temp : map.keySet()) {
+                    if (month.format(temp).equals(monthString)) {
+                        list = map.get(temp);
+                        if (list != null && !inEvent) {
+                            for (EventDetails event : list) {
+                                //System.out.println(event.getBoundingRectangle().contains(currentDragX, currentDragY));
+                                if (event.getBoundingRectangle().contains(currentDragX, currentDragY)) {
+                                    inEvent = true;
+                                    //System.out.println("List is: " + list);
+                                    break;
+                                }
+                                count++;
                             }
-                            count++;
-                        }
-                        if (inEvent) {
-                            break;
+                            if (inEvent) {
+                                break;
+                            } else {
+                                count = 0;
+                            }
                         }
                     }
                 }
+                //System.out.println("Count = " + count);
                 if (inEvent) {
                     for (Rectangle rect : rectList) {
                         if (rect.contains(currentDragX, currentDragY)) {
                             int t = rectList.indexOf(rect);
                             if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
-                                list.get(count).setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
+
+                                LocalDate newDate = LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1);
+                                EventDetails temp = list.get(count);
+                                temp.setDate(newDate);
+                                Calendar.addMap(temp);
+                                list.remove(count);
+
                             }
-                            repaint();
                         }
+                        repaint();
                     }
                 }
             }
