@@ -3,7 +3,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-public class EventDetails {
+public class EventDetails implements Comparable {
     private String name;
     private LocalDate date;
     private int start;
@@ -23,6 +23,11 @@ public class EventDetails {
         this.endIndex = endIndex;
         this.tags = tags;
         this.time = time;
+    }
+    @Override
+    public int compareTo(Object event) {
+        int compareTime = ((EventDetails) event).startIndex;
+        return this.startIndex - compareTime;
     }
 
     public String toString() {

@@ -5,10 +5,7 @@ import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class MonthView extends JComponent {
     private LocalDate date = LocalDate.now();
@@ -159,6 +156,8 @@ public class MonthView extends JComponent {
         for (LocalDate temp : map.keySet()) {
             if (month.format(temp).equals(monthString)) {
                 ArrayList<EventDetails> list = map.get(temp);
+                // Sorting the ArrayList so events are displayed in order
+                Collections.sort(list);
                 int size = (rectHeight - 20) / eventHeight;
                 if (list != null) {
                     for (int i = 0; i < list.size(); i++) {
