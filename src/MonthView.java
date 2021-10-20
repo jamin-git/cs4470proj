@@ -44,8 +44,6 @@ public class MonthView extends JComponent {
         xSize = Calendar.getScrollPaneWidth();
         ySize = Calendar.getScrollPaneHeight();
 
-        // System.out.println("Width: " + xSize);
-        // System.out.println("Height: " + ySize);
 
 
         // Creating Rectangle
@@ -107,16 +105,17 @@ public class MonthView extends JComponent {
         // Data Initialization
         LocalDate start = date.withDayOfMonth(1);
         DateTimeFormatter day = DateTimeFormatter.ofPattern("EEEE");
+        DateTimeFormatter currDay = DateTimeFormatter.ofPattern("d");
+        DateTimeFormatter currMonth = DateTimeFormatter.ofPattern("MMMM");
         String dayString = day.format(start);
         boolean monthStart = false;
         countDays = 0;
         initGrayBoxes = 0;
-        g.setColor(gray);
 
         // Filling Inactive Cells and Numbering
         for (int row = 0; row < rowCount; row++) {
             for (int col = 0; col < columnCount; col++) {
-                g.setColor(new Color(255, 255, 255, 130));
+                g.setColor(new Color(0, 0, 0, 130));
                 if (!monthStart) {
                     if (arrDays[col].equals(dayString)) {
                         col--;
@@ -128,7 +127,13 @@ public class MonthView extends JComponent {
                     }
                 } else {
                     countDays++;
+                    if (countDays == Integer.parseInt(currDay.format(date)) && currMonth.format(date).equals(currMonth.format(LocalDate.now()))) {
+                        g.setColor(new Color(255, 255, 255, 100));
+                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                rectWidth, rectHeight);
+                    }
                     if (countDays > date.lengthOfMonth()) {
+                        g.setColor(new Color(0, 0, 0, 130));
                         g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
                                 rectWidth, rectHeight);
                         countDays--;
@@ -205,13 +210,6 @@ public class MonthView extends JComponent {
                 }
             }
         }
-        Iterator iterator = map.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry mapElement = (Map.Entry)iterator.next();
-            ArrayList<EventDetails> d = (ArrayList<EventDetails>)mapElement.getValue();
-            System.out.println(mapElement.getKey() + " : " + d);
-        }
-        System.out.println("------------------------------------");
     }
 
     @Override
@@ -227,6 +225,9 @@ public class MonthView extends JComponent {
         ArrayList<EventDetails> list = map.get(date);
         DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
         String monthString = month.format(date);
+
+        boolean selectedEvent = false;
+        EventDetails curr = null;
 
         boolean inEvent = false;
         public void mouseClicked(MouseEvent e) {
@@ -272,57 +273,47 @@ public class MonthView extends JComponent {
         public void mouseReleased(MouseEvent e) {
             mouseDragged = false;
             inEvent = false;
+            selectedEvent = false;
             count = 0;
             list = null;
         }
         public void mouseDragged(MouseEvent e) {
-            int currentDragX = e.getX();
-            int currentDragY = e.getY();
+            int x = e.getX();
+            int y = e.getY();
 
-            if ((map != null || map.isEmpty())) {
-                for (LocalDate temp : map.keySet()) {
-                    if (month.format(temp).equals(monthString) && !mouseDragged) {
-                        mouseDragged = true;
-                        list = map.get(temp);
-                        if (list != null && !inEvent) {
+            if (map != null && !selectedEvent) {
+                // Iterating through the map keys
+                for (LocalDate tempDate : map.keySet()) {
+                    // Checking if the current date is in the month
+                    if (month.format(tempDate).equals(monthString)) {
+                        list = map.get(tempDate);
+                        if (list != null) {
                             for (EventDetails event : list) {
-                                //System.out.println(event.getBoundingRectangle().contains(currentDragX, currentDragY));
-                                if (event.getBoundingRectangle().contains(currentDragX, currentDragY)) {
-                                    inEvent = true;
-                                    //System.out.println("List is: " + list);
+                                if (event.getBoundingRectangle().contains(x, y)) {
+                                    curr = event;
+                                    selectedEvent = true;
                                     break;
                                 }
-                                count++;
                             }
-                            if (inEvent) {
+                            if (selectedEvent) {
                                 break;
-                            } else {
-                                count = 0;
                             }
                         }
                     }
                 }
-                //System.out.println("Count = " + count);
-                if (inEvent) {
-                    for (Rectangle rect : rectList) {
-                        if (rect.contains(currentDragX, currentDragY)) {
-                            int t = rectList.indexOf(rect);
-                            if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
-                                LocalDate oldDate = list.get(count).getDate();
-                                LocalDate newDate = LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1);
-                                EventDetails temp = list.get(count);
-                                temp.setDate(newDate);
-                                Calendar.addMap(temp);
-                                list.remove(count);
-                                if (list.size() == 0) {
-                                    map.remove(oldDate);
-                                    list = map.get(newDate);
-                                }
-                            }
+            }
+            if (selectedEvent) {
+                for (Rectangle rect : rectList) {
+                    if (rect.contains(x, y)) {
+                        int t = rectList.indexOf(rect);
+                        if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
+                            list.remove(curr);
+                            curr.setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
+                            Calendar.addMap(curr);
+                            list = map.get(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
                         }
                         repaint();
                     }
-                    mouseDragged = false;
                 }
             }
         }
