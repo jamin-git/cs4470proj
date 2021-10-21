@@ -217,18 +217,16 @@ public class MonthView extends JComponent {
     }
 
     private class Handlerclass extends MouseInputAdapter {
+
         EventDetails newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
-        boolean mouseDragged = false;
-        int count = 0;
         HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
         ArrayList<EventDetails> list = map.get(date);
         DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
         String monthString = month.format(date);
-
         boolean selectedEvent = false;
         EventDetails curr = null;
 
-        boolean inEvent = false;
+
         public void mouseClicked(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
@@ -270,10 +268,7 @@ public class MonthView extends JComponent {
             }
         }
         public void mouseReleased(MouseEvent e) {
-            mouseDragged = false;
-            inEvent = false;
             selectedEvent = false;
-            count = 0;
             list = null;
         }
         public void mouseDragged(MouseEvent e) {

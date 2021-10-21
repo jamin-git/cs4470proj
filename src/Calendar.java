@@ -37,7 +37,6 @@ public class Calendar extends JFrame {
     private JButton appointment;
 
     // Initializing Main Area Panels
-    private JLabel placeHolder;
     private static JScrollPane mainSection;
 
     // Initializing the appointment dialog box
@@ -261,13 +260,6 @@ public class Calendar extends JFrame {
         mainSection = new JScrollPane(dV);
         mainSection.setPreferredSize(new Dimension(600, 700));
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
-
-
-        // PlaceHolder code for MonthView
-        placeHolder = new JLabel();
-        placeHolder.setFont(verdana);
-        placeHolder.setHorizontalAlignment(JLabel.CENTER);
-        placeHolder.setVerticalAlignment(JLabel.CENTER);
     }
 
     private void changeMonth() {
@@ -397,6 +389,15 @@ public class Calendar extends JFrame {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
 
+            // Can't have an event with no time
+            if (Math.abs(start.getSelectedIndex() - end.getSelectedIndex()) == 0) {
+                if (end.getSelectedIndex() != times.length - 1) {
+                    end.setSelectedIndex(end.getSelectedIndex() + 1);
+                } else if (start.getSelectedIndex() == times.length - 1) {
+                    start.setSelectedIndex(start.getSelectedIndex() - 1);
+                }
+            }
+
             // Creating a new event
             EventDetails e = new EventDetails(name.getText(), LocalDate.parse(date.getText(), formatter),
                     convertTime(start.getSelectedItem().toString()), convertTime(end.getSelectedItem().toString()),
@@ -408,6 +409,9 @@ public class Calendar extends JFrame {
 
             // Updating the Status Bar
             statusBar.setText("Status: Appointment Created - " + e);
+
+            // Repainting MonthView
+            mV.repaint();
         }
     }
 
@@ -520,6 +524,14 @@ public class Calendar extends JFrame {
                 tag.add("Other");
             }
 
+            // Can't have an event with no time
+            if (Math.abs(start.getSelectedIndex() - end.getSelectedIndex()) == 0) {
+                if (end.getSelectedIndex() != times.length - 1) {
+                    end.setSelectedIndex(end.getSelectedIndex() + 1);
+                } else if (start.getSelectedIndex() == times.length - 1) {
+                    start.setSelectedIndex(start.getSelectedIndex() - 1);
+                }
+            }
 
             // Creating the new event
             EventDetails e = new EventDetails(name.getText(), LocalDate.parse(date.getText(), dayFormatter),
