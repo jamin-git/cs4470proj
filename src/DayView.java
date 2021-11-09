@@ -1,8 +1,11 @@
+import dollar.DollarRecognizer;
+import dollar.Result;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -20,8 +23,19 @@ public class DayView extends JComponent {
 
     private Color gray = new Color(209,209,209);
 
+    // Gesture Variables
+    private ArrayList<Point2D> strokes = null;
+    private DollarRecognizer dr = new DollarRecognizer();
+    private EventDetails strokeEvent = null;
+
+
     private Font franklinGothic = new Font("Franklin Gothic", Font.BOLD, 14);
     private Font sfranklinGothic = new Font("Franklin Gothic", Font.BOLD, 10);
+
+
+    // Map Variables
+    private HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
+    private ArrayList<EventDetails> list = map.get(date);
 
     public DayView() {
         setDate(LocalDate.now());
@@ -73,8 +87,7 @@ public class DayView extends JComponent {
         }
 
         // Painting Events
-        HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
-        ArrayList<EventDetails> list = map.get(date);
+        list = map.get(date);
         if (list != null) {
             for (EventDetails e : list) {
 
@@ -115,6 +128,18 @@ public class DayView extends JComponent {
         // Painting Time-Of-Day Line
         g.setColor(Color.RED);
         g.drawLine(35, yLine, xSize - 35, yLine);
+
+        // Drawing the Strokes
+        g.setColor(Color.BLUE);
+        if (strokes != null) {
+            Point2D temp = null;
+            for (Point2D stroke : strokes) {
+                if (temp != null) {
+                    g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+                }
+                temp = stroke;
+            }
+        }
     }
 
     @Override
@@ -142,6 +167,11 @@ public class DayView extends JComponent {
         // Used to keep track of events when dragging already made events
         int count = -1;
 
+        // Left and Right Mouse click variables
+        boolean left = false;
+        boolean right = false;
+
+
         // Methods / Code for Time-Of-Day Line
         public void mouseMoved(MouseEvent e) {
             yLine = e.getY();
@@ -156,39 +186,49 @@ public class DayView extends JComponent {
         public void mousePressed(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            boolean isEvent = false;
-            ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-            if (list != null) {
-                for (EventDetails event : list) {
-                    if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                        Calendar.appointmentFilled(event, false);
-                        list.remove(event);
-                        e.consume();
-                        isEvent = true;
-                        repaint();
-                        break;
-                    }
-                }
-            }
-            if (!isEvent) {
-                for (Rectangle rect : rectList) {
-                    if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-                        int t = rectList.indexOf(rect);
-                        newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 1);
-                        if (t == 92) {
-                            newEvent.setEndIndex(t + 3);
-                        } else if (t == 93) {
-                            newEvent.setEndIndex(t + 2);
-                        } else if (t == 94) {
-                            newEvent.setEndIndex(t + 1);
+
+            if (e.getButton() == MouseEvent.BUTTON1) {
+                left = true;
+                right = false;
+                boolean isEvent = false;
+                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+                if (list != null) {
+                    for (EventDetails event : list) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                            Calendar.appointmentFilled(event, false);
+                            list.remove(event);
+                            e.consume();
+                            isEvent = true;
+                            repaint();
+                            break;
                         }
-                        Calendar.appointmentFilled(newEvent, true);
-                        e.consume();
-                        repaint();
-                        break;
                     }
                 }
+                if (!isEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect);
+                            newEvent = new EventDetails("New Event", date, 0, 0, t, t + 4, new ArrayList<String>(), 1);
+                            if (t == 92) {
+                                newEvent.setEndIndex(t + 3);
+                            } else if (t == 93) {
+                                newEvent.setEndIndex(t + 2);
+                            } else if (t == 94) {
+                                newEvent.setEndIndex(t + 1);
+                            }
+                            Calendar.appointmentFilled(newEvent, true);
+                            e.consume();
+                            repaint();
+                            break;
+                        }
+                    }
+                }
+            } else if (e.getButton() == MouseEvent.BUTTON3) {
+                right = true;
+                left = false;
+                strokes = new ArrayList<>();
             }
+            System.out.println("Left: " + left + ", Right: " + right);
         }
 
         // This method is utilized to reset mouseDrag events when they are over
@@ -199,67 +239,176 @@ public class DayView extends JComponent {
             mouseDragged = false;
             count = -1;
             newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
+            list = map.get(date);
+
+            // Functionality for Strokes
+            if (strokes != null && strokes.size() > 0) {
+                Result r = dr.recognize(strokes);
+                if (list != null) {
+                    for (EventDetails event : list) {
+                        if (event.getBoundingRectangle().contains(strokes.get(0))) {
+                            strokeEvent = event;
+                        }
+                    }
+                }
+
+                if (r.getName().equals("delete")) {
+                    if (strokeEvent != null) {
+                        Calendar.removeMap(date ,strokeEvent);
+                        Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+
+                else if (r.getName().equals("right square bracket")) {
+                    Calendar.nextDay();
+                    Calendar.setStatusBar("Moved to next day via right bracket gesture with an accuracy score of: " + r.getScore());
+                }
+
+                else if (r.getName().equals("left square bracket")) {
+                    Calendar.prevDay();
+                    Calendar.setStatusBar("Moved to prev day via left bracket gesture with an accuracy score of: " + r.getScore());
+                }
+                // Checks for Vacation Tag
+                else if (r.getName().equals("star")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Vacation");
+                        Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Work Tag
+                else if (r.getName().equals("check")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Work");
+                        Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for School Tag
+                else if (r.getName().equals("x")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("School");
+                        Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Family Tag
+                else if (r.getName().equals("pigtail")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Family");
+                        Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Other tag
+                else if (r.getName().equals("triangle")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Other");
+                        Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+
+                else if (r.getName().equals("caret")) {
+                    if (strokeEvent != null) {
+                        int end = strokeEvent.getEndIndex();
+                        int start = strokeEvent.getStartIndex();
+                        if (start - 4 >= 0) {
+                            Calendar.updateEventStart(strokeEvent, start - 4);
+                            Calendar.updateEventEnd(strokeEvent, end - 4);
+                        } else {
+                            int temp = 0 - start;
+                            Calendar.updateEventStart(strokeEvent, start + temp);
+                            Calendar.updateEventEnd(strokeEvent, end + temp);
+                        }
+                        Calendar.setStatusBar("Moved time forward 1 hour via caret gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+
+                else if (r.getName().equals("v")) {
+                    if (strokeEvent != null) {
+                        int end = strokeEvent.getEndIndex();
+                        int start = strokeEvent.getStartIndex();
+                        if (end + 4 < 96) {
+                            Calendar.updateEventStart(strokeEvent, start + 4);
+                            Calendar.updateEventEnd(strokeEvent, end + 4);
+                        } else {
+                            int temp = 95 - end;
+                            Calendar.updateEventStart(strokeEvent, start + temp);
+                            Calendar.updateEventEnd(strokeEvent, end + temp);
+                        }
+                        Calendar.setStatusBar("Moved time backward 1 hour via v gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                else {
+                    Calendar.setStatusBar("Gesture did not match");
+                }
+            }
+
+            left = false;
+            right = false;
+            strokes = null;
+            strokeEvent = null;
+            repaint();
         }
 
         // Dragging functionality
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            boolean wentUp = false;
 
-
-            // Code for Dragging Already Created Event
-            ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
-            if (list != null && !singleEvent) {
-                if (!mouseDragged) {
-                    mouseDragged = true;
-                    for (EventDetails event : list) {
-                        count++;
-                        if (event.getBoundingRectangle().contains(x, y)) {
-                            isEvent = true;
-                            break;
+            if (left) {
+                // Code for Dragging Already Created Event
+                ArrayList<EventDetails> list = Calendar.getEventDetails().get(date);
+                if (list != null && !singleEvent) {
+                    if (!mouseDragged) {
+                        mouseDragged = true;
+                        for (EventDetails event : list) {
+                            count++;
+                            if (event.getBoundingRectangle().contains(x, y)) {
+                                isEvent = true;
+                                break;
+                            }
                         }
                     }
-                }
-                if (isEvent) {
-                    for (Rectangle rect : rectList) {
-                        if (rect.contains(x, y)) {
-                            int t = rectList.indexOf(rect);
-                            Calendar.updatePrevEvent(list.get(count), t);
-                        }
-                        repaint();
-                    }
-                }
-            }
-
-            // Code for Drag Creating a new event
-            if (!isEvent) {
-                if (!singleEvent) {
-                    Calendar.addMap(newEvent);
-                    singleEvent = true;
-                }
-                if (Calendar.getEventDetails().get(date) != null) {
-                    for (Rectangle rect : rectList) {
-                        if (rect.contains(x, y)) {
-                            int t = rectList.indexOf(rect);
-                            ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
-                            if (!start) {
-                                Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
-                                start = true;
-                            } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
-                                Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
-                            } else if (t <= l.get(l.indexOf(newEvent)).getStartIndex()) {
-                                int index = l.indexOf(newEvent);
-                                if (l.get(index).getStartIndex() < 95) {
-                                    Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex() + 1);
-                                } else {
-                                    Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex());
-                                }
+                    if (isEvent) {
+                        for (Rectangle rect : rectList) {
+                            if (rect.contains(x, y)) {
+                                int t = rectList.indexOf(rect);
+                                Calendar.updatePrevEvent(list.get(count), t);
                             }
                             repaint();
                         }
                     }
                 }
+
+                // Code for Drag Creating a new event
+                if (!isEvent) {
+                    if (!singleEvent) {
+                        Calendar.addMap(newEvent);
+                        singleEvent = true;
+                    }
+                    if (Calendar.getEventDetails().get(date) != null) {
+                        for (Rectangle rect : rectList) {
+                            if (rect.contains(x, y)) {
+                                int t = rectList.indexOf(rect);
+                                ArrayList<EventDetails> l = Calendar.getEventDetails().get(date);
+                                if (!start) {
+                                    Calendar.updateEventStart(l.get(l.indexOf(newEvent)), t);
+                                    start = true;
+                                } else if (t > l.get(l.indexOf(newEvent)).getStartIndex()) {
+                                    Calendar.updateEventEnd(l.get(l.indexOf(newEvent)), t);
+                                } else if (t <= l.get(l.indexOf(newEvent)).getStartIndex()) {
+                                    int index = l.indexOf(newEvent);
+                                    if (l.get(index).getStartIndex() < 95) {
+                                        Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex() + 1);
+                                    } else {
+                                        Calendar.updateEventEnd(l.get(index), l.get(index).getStartIndex());
+                                    }
+                                }
+                                repaint();
+                            }
+                        }
+                    }
+                }
+            } else if (right) {
+                strokes.add(new Point(x, y));
+                repaint();
             }
         }
     }

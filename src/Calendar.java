@@ -42,18 +42,17 @@ public class Calendar extends JFrame {
     // Initializing the appointment dialog box
     private static JPanel appointmentBox;
 
-    // DayView Component Initialization
-    private DayView dV = new DayView();
-
-    // MonthView Component Initialization
-    private MonthView mV = new MonthView();
-
-
     // HashMap to Store EventDetails, Event Details are within an array to support multiple events
     private static HashMap<LocalDate, ArrayList<EventDetails>> eventDetails = new HashMap<>();
 
+    // DayView Component Initialization
+    private static DayView dV = new DayView();
+
+    // MonthView Component Initialization
+    private static MonthView mV = new MonthView();
+
     // Misc Variables
-    int temp = 0;
+    private static int temp = 0;
     boolean isDay = true;
 
 
@@ -276,7 +275,7 @@ public class Calendar extends JFrame {
         temp = 0;
         statusBar.setText("Status: System changed to Day View");
     }
-    private void nextDay() {
+    protected static void nextDay() {
         temp++;
         LocalDate date = LocalDate.now();
         date = date.plusDays(temp);
@@ -284,7 +283,7 @@ public class Calendar extends JFrame {
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Forward 1 Day");
     }
-    private void prevDay() {
+    protected static void prevDay() {
         temp--;
         LocalDate date = LocalDate.now();
         date = date.plusDays(temp);
@@ -292,7 +291,7 @@ public class Calendar extends JFrame {
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
-    private void nextMonth() {
+    protected static void nextMonth() {
         temp++;
         LocalDate date = LocalDate.now();
         date = date.plusMonths(temp);
@@ -300,7 +299,7 @@ public class Calendar extends JFrame {
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Forward 1 Month");
     }
-    private void prevMonth() {
+    protected static void prevMonth() {
         temp--;
         LocalDate date = LocalDate.now();
         date = date.plusMonths(temp);
@@ -363,26 +362,20 @@ public class Calendar extends JFrame {
         if (n != 0) {
             statusBar.setText("Status: Appointment Creation Cancelled");
         } else {
-            String tags = "";
             ArrayList<String> tag = new ArrayList<>();
             if (vacation.isSelected()) {
-                tags = tags + "Vacation ";
                 tag.add("Vacation");
             }
             if (work.isSelected()) {
-                tags = tags + "Work ";
                 tag.add("Work");
             }
             if (school.isSelected()) {
-                tags = tags + "School ";
                 tag.add("School");
             }
             if (family.isSelected()) {
-                tags = tags + "Family ";
                 tag.add("Family");
             }
             if (other.isSelected()) {
-                tags = tags + "Other";
                 tag.add("Other");
             }
 
@@ -501,26 +494,20 @@ public class Calendar extends JFrame {
                 }
             }
         } else {
-            String tags = "";
             ArrayList<String> tag = new ArrayList<>();
             if (vacation.isSelected()) {
-                tags = tags + "Vacation ";
                 tag.add("Vacation");
             }
             if (work.isSelected()) {
-                tags = tags + "Work ";
                 tag.add("Work");
             }
             if (school.isSelected()) {
-                tags = tags + "School ";
                 tag.add("School");
             }
             if (family.isSelected()) {
-                tags = tags + "Family ";
                 tag.add("Family");
             }
             if (other.isSelected()) {
-                tags = tags + "Other";
                 tag.add("Other");
             }
 
@@ -581,6 +568,13 @@ public class Calendar extends JFrame {
         }
     }
 
+    // This code removes an event from the hashmap
+    public static void removeMap (LocalDate d, EventDetails e) {
+        if (eventDetails.get(d) != null && eventDetails.get(d).contains(e)) {
+            eventDetails.get(d).remove(e);
+        }
+    }
+
     // This method converts the time from the combobox to an integer (Military Time, e.g 100 == 1pm)
     private static int convertTime(String time) {
         String timeOfDay = time.substring(time.length() - 2);
@@ -633,6 +627,9 @@ public class Calendar extends JFrame {
     }
     public static int getScrollPaneHeight() {
         return mainSection.getHeight();
+    }
+    public static void setStatusBar(String s) {
+        statusBar.setText(s);
     }
 
     // Getter for the event details hashmap

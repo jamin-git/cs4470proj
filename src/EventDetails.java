@@ -65,6 +65,13 @@ public class EventDetails implements Comparable {
     public void setTags(ArrayList<String> tags) {
         this.tags = tags;
     }
+    public void toggleTag(String s) {
+        if (tags.contains(s)) {
+            tags.remove(s);
+        } else {
+            tags.add(s);
+        }
+    }
     public int getTime() {
         return time;
     }

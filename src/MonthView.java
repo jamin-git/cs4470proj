@@ -1,7 +1,11 @@
+import dollar.DollarRecognizer;
+import dollar.Result;
+
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -26,6 +30,15 @@ public class MonthView extends JComponent {
     // Variables for Layout
     private int initGrayBoxes = 0;
     private int countDays = 0;
+
+    // Gesture Variables
+    private ArrayList<Point2D> strokes = null;
+    private DollarRecognizer dr = new DollarRecognizer();
+    private EventDetails strokeEvent = null;
+
+    // Map Variables
+    private HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
+    private ArrayList<EventDetails> list = map.get(date);
 
     public MonthView() {
         date = LocalDate.now();
@@ -143,7 +156,7 @@ public class MonthView extends JComponent {
         }
 
         // Painting Events
-        HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
+        map = Calendar.getEventDetails();
         DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
         String monthString = month.format(date);
 
@@ -155,7 +168,7 @@ public class MonthView extends JComponent {
 
         for (LocalDate temp : map.keySet()) {
             if (month.format(temp).equals(monthString)) {
-                ArrayList<EventDetails> list = map.get(temp);
+                list = map.get(temp);
                 // Sorting the ArrayList so events are displayed in order
                 Collections.sort(list);
                 int size = (rectHeight - 20) / eventHeight;
@@ -209,6 +222,17 @@ public class MonthView extends JComponent {
                 }
             }
         }
+        // Drawing the Strokes
+        g.setColor(Color.BLUE);
+        if (strokes != null) {
+            Point2D temp = null;
+            for (Point2D stroke : strokes) {
+                if (temp != null) {
+                    g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+                }
+                temp = stroke;
+            }
+        }
     }
 
     @Override
@@ -226,89 +250,205 @@ public class MonthView extends JComponent {
         boolean selectedEvent = false;
         EventDetails curr = null;
 
+        // Left and Right Mouse click variables
+        boolean left = false;
+        boolean right = false;
+        boolean startDrag = false;
 
         public void mouseClicked(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
-            boolean isEvent = false;
-            if (map != null || map.isEmpty()) {
-                for (LocalDate temp : map.keySet()) {
-                    if (month.format(temp).equals(monthString)) {
-                        list = map.get(temp);
-                        for (EventDetails event : list) {
-                            if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
-                                Calendar.appointmentFilled(event, false);
-                                list.remove(event);
+
+            if (e.getButton() == MouseEvent.BUTTON1) {
+                left = true;
+                right = false;
+
+                boolean isEvent = false;
+                if (map != null || map.isEmpty()) {
+                    for (LocalDate temp : map.keySet()) {
+                        if (month.format(temp).equals(monthString)) {
+                            list = map.get(temp);
+                            for (EventDetails event : list) {
+                                if (e.getClickCount() == 2 && !e.isConsumed() && event.getBoundingRectangle().contains(x, y)) {
+                                    Calendar.appointmentFilled(event, false);
+                                    list.remove(event);
+                                    e.consume();
+                                    isEvent = true;
+                                    repaint();
+                                    break;
+                                }
+                            }
+                            if (isEvent) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!isEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect);
+                            if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
+                                LocalDate d = LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1);
+                                newEvent = new EventDetails("New Event", d, 0, 1, 0, 4, new ArrayList<String>(), 1);
+                                Calendar.appointmentFilled(newEvent, true);
                                 e.consume();
-                                isEvent = true;
                                 repaint();
                                 break;
                             }
                         }
-                        if (isEvent) {
-                            break;
-                        }
                     }
                 }
-            }
-            if (!isEvent) {
-                for (Rectangle rect : rectList) {
-                    if (e.getClickCount() == 2 && !e.isConsumed() && rect.contains(x, y)) {
-                        int t = rectList.indexOf(rect);
-                        if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
-                            LocalDate d = LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1);
-                            newEvent = new EventDetails("New Event", d, 0, 1, 0, 4, new ArrayList<String>(), 1);
-                            Calendar.appointmentFilled(newEvent, true);
-                            e.consume();
-                            repaint();
-                            break;
-                        }
-                    }
-                }
+            } else if (e.getButton() == MouseEvent.BUTTON3) {
+                right = true;
+                left = false;
+                strokes = new ArrayList<>();
             }
         }
         public void mouseReleased(MouseEvent e) {
             selectedEvent = false;
             list = null;
+
+            // Functionality for strokes
+            if (strokes != null && strokes.size() > 0) {
+                Result r = dr.recognize(strokes);
+                if (map != null || map.isEmpty()) {
+                    for (LocalDate temp : map.keySet()) {
+                        if (month.format(temp).equals(monthString)) {
+                            list = map.get(temp);
+                            for (EventDetails event : list) {
+                                if (event.getBoundingRectangle().contains(strokes.get(0))) {
+                                    strokeEvent = event;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (r.getName().equals("delete")) {
+                    if (strokeEvent != null) {
+                        Calendar.removeMap(date, strokeEvent);
+                        Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + r.getScore());
+                    }
+                } else if (r.getName().equals("right square bracket")) {
+                    Calendar.nextMonth();
+                    Calendar.setStatusBar("Moved to next month via right bracket gesture with an accuracy score of: " + r.getScore());
+                } else if (r.getName().equals("left square bracket")) {
+                    Calendar.prevMonth();
+                    Calendar.setStatusBar("Moved to prev month via left bracket gesture with an accuracy score of: " + r.getScore());
+                }
+                // Checks for Vacation Tag
+                else if (r.getName().equals("star")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Vacation");
+                        Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Work Tag
+                else if (r.getName().equals("check")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Work");
+                        Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for School Tag
+                else if (r.getName().equals("x")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("School");
+                        Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Family Tag
+                else if (r.getName().equals("pigtail")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Family");
+                        Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+                // Checks for Other Tag
+                else if (r.getName().equals("triangle")) {
+                    if (strokeEvent != null) {
+                        strokeEvent.toggleTag("Other");
+                        Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + r.getScore());
+                    }
+                }
+
+                else if (r.getName().equals("zig-zag")) {
+                    if (strokeEvent != null) {
+                        if (strokes.get(0).getY() < strokes.get(strokes.size() - 1).getY()) {
+                            Calendar.setStatusBar("Added events vertically via zig-zag gesture with an accuracy score of: " + r.getScore());
+                        } else {
+                            Calendar.setStatusBar("Added events horizontally via zig-zag gesture with an accuracy score of: " + r.getScore());
+                        }
+                    }
+                }
+                else {
+                    Calendar.setStatusBar("Gesture did not match");
+                }
+            }
+
+
+
+
+
+
+
+
+            left = false;
+            right = false;
+            strokes = null;
+            strokeEvent = null;
+            startDrag = false;
+            repaint();
         }
         public void mouseDragged(MouseEvent e) {
             int x = e.getX();
             int y = e.getY();
 
-            if (map != null && !selectedEvent) {
-                // Iterating through the map keys
-                for (LocalDate tempDate : map.keySet()) {
-                    // Checking if the current date is in the month
-                    if (month.format(tempDate).equals(monthString)) {
-                        list = map.get(tempDate);
-                        if (list != null) {
-                            for (EventDetails event : list) {
-                                if (event.getBoundingRectangle().contains(x, y)) {
-                                    curr = event;
-                                    selectedEvent = true;
+            if (!startDrag) {
+                strokes = new ArrayList<>();
+                startDrag = true;
+            }
+
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                if (map != null && !selectedEvent) {
+                    // Iterating through the map keys
+                    for (LocalDate tempDate : map.keySet()) {
+                        // Checking if the current date is in the month
+                        if (month.format(tempDate).equals(monthString)) {
+                            list = map.get(tempDate);
+                            if (list != null) {
+                                for (EventDetails event : list) {
+                                    if (event.getBoundingRectangle().contains(x, y)) {
+                                        curr = event;
+                                        selectedEvent = true;
+                                        break;
+                                    }
+                                }
+                                if (selectedEvent) {
                                     break;
                                 }
                             }
-                            if (selectedEvent) {
-                                break;
+                        }
+                    }
+                }
+                if (selectedEvent) {
+                    for (Rectangle rect : rectList) {
+                        if (rect.contains(x, y)) {
+                            int t = rectList.indexOf(rect);
+                            if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
+                                list.remove(curr);
+                                curr.setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
+                                Calendar.addMap(curr);
+                                list = map.get(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
                             }
+                            repaint();
                         }
                     }
                 }
-            }
-            if (selectedEvent) {
-                for (Rectangle rect : rectList) {
-                    if (rect.contains(x, y)) {
-                        int t = rectList.indexOf(rect);
-                        if (t > initGrayBoxes - 1 && t < countDays + initGrayBoxes) {
-                            list.remove(curr);
-                            curr.setDate(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
-                            Calendar.addMap(curr);
-                            list = map.get(LocalDate.of(date.getYear(), date.getMonth(),t - initGrayBoxes + 1));
-                        }
-                        repaint();
-                    }
-                }
+            } else if (SwingUtilities.isRightMouseButton(e)) {
+                strokes.add(new Point(x, y));
+                System.out.println("repainting the strokes");
+                repaint();
             }
         }
     }
@@ -323,5 +463,9 @@ public class MonthView extends JComponent {
         updateListener();
         addMouseMotionListener(handler);
         addMouseListener(handler);
+    }
+
+    private void addHorizontalEvents(EventDetails e) {
+
     }
 }
