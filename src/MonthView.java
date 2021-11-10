@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.*;
 
 public class MonthView extends JComponent {

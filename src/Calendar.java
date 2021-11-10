@@ -1,6 +1,5 @@
 
 import javax.swing.*;
-import javax.swing.text.html.ImageView;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.URL;
