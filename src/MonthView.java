@@ -371,27 +371,23 @@ public class MonthView extends JComponent {
                         Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + r.getScore());
                     }
                 }
-
+                // Checks Zig-Zag
                 else if (r.getName().equals("zig-zag")) {
                     if (strokeEvent != null) {
-                        if (strokes.get(0).getY() < strokes.get(strokes.size() - 1).getY()) {
+                        if (r.getCandidate().getRadians() < -1) {
+                            addVerticalEvents(strokeEvent);
                             Calendar.setStatusBar("Added events vertically via zig-zag gesture with an accuracy score of: " + r.getScore());
                         } else {
+                            addHorizontalEvents(strokeEvent);
                             Calendar.setStatusBar("Added events horizontally via zig-zag gesture with an accuracy score of: " + r.getScore());
                         }
                     }
                 }
+                // For Gestures that don't match
                 else {
                     Calendar.setStatusBar("Gesture did not match");
                 }
             }
-
-
-
-
-
-
-
 
             left = false;
             right = false;
@@ -447,7 +443,6 @@ public class MonthView extends JComponent {
                 }
             } else if (SwingUtilities.isRightMouseButton(e)) {
                 strokes.add(new Point(x, y));
-                System.out.println("repainting the strokes");
                 repaint();
             }
         }
@@ -465,7 +460,58 @@ public class MonthView extends JComponent {
         addMouseListener(handler);
     }
 
-    private void addHorizontalEvents(EventDetails e) {
+    private void addVerticalEvents(EventDetails e) {
+        DateTimeFormatter day = DateTimeFormatter.ofPattern("d");
+        int totalDays = e.getDate().lengthOfMonth();
+        int dayOfMonth = Integer.parseInt(day.format(e.getDate()));
 
+        int c1 = dayOfMonth - 7;
+        int c2 = dayOfMonth + 7;
+        int count1 = 0;
+        int count2 = 0;
+
+        // Days before selected date
+        while (c1 >= 1) {
+            count1++;
+            EventDetails newEvent = e.copyEvent();
+            newEvent.setDate(e.getDate().minusDays(7 * count1));
+            Calendar.addMap(newEvent);
+            c1 -= 7;
+        }
+        // Days after selected date
+        while (c2 <= totalDays) {
+            count2++;
+            EventDetails newEvent = e.copyEvent();
+            newEvent.setDate(e.getDate().plusDays(7 * count2));
+            Calendar.addMap(newEvent);
+            c2 += 7;
+        }
+    }
+    private void addHorizontalEvents(EventDetails e) {
+        DateTimeFormatter day = DateTimeFormatter.ofPattern("d");
+        DateTimeFormatter dayString = DateTimeFormatter.ofPattern("EEEE");
+        int totalDays = e.getDate().lengthOfMonth();
+        int dayOfMonth = Integer.parseInt(day.format(e.getDate()));
+        String currDay = dayString.format(e.getDate());
+
+        int place = 0;
+        for (String s : arrDays) {
+            if (s.equals(currDay)) {
+                break;
+            }
+            place++;
+        }
+
+        int count = 0;
+        while (count < 7) {
+            if (dayOfMonth - place + count >= 1 && dayOfMonth + count - place <= totalDays) {
+                if (count - place != 0) {
+                    EventDetails newEvent = e.copyEvent();
+                    newEvent.setDate(e.getDate().plusDays(count - place));
+                    Calendar.addMap(newEvent);
+                }
+            }
+            count++;
+        }
     }
 }

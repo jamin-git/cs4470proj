@@ -101,4 +101,7 @@ public class EventDetails implements Comparable {
     public void setStartIndex(int startIndex) {
         this.startIndex = startIndex;
     }
+    public EventDetails copyEvent() {
+        return new EventDetails(this.name ,this.date, this.start, this.end, this.startIndex, this.endIndex, this.tags, this.time);
+    }
 }
