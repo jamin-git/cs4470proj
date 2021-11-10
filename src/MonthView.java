@@ -324,68 +324,72 @@ public class MonthView extends JComponent {
                         }
                     }
                 }
-                if (r.getName().equals("delete")) {
-                    if (strokeEvent != null) {
-                        Calendar.removeMap(date, strokeEvent);
-                        Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + r.getScore());
+                if (r != null) {
+                    if (r.getName().equals("delete")) {
+                        if (strokeEvent != null) {
+                            Calendar.removeMap(strokeEvent.getDate(), strokeEvent);
+                            Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + round(r.getScore()));
+                        }
+                    } else if (r.getName().equals("right square bracket")) {
+                        Calendar.nextMonth();
+                        Calendar.setStatusBar("Moved to next month via right bracket gesture with an accuracy score of: " +
+                                Math.round(r.getScore() * Math.pow(10, 2)) / Math.pow(10, 2));
+                    } else if (r.getName().equals("left square bracket")) {
+                        Calendar.prevMonth();
+                        Calendar.setStatusBar("Moved to prev month via left bracket gesture with an accuracy score of: " + round(r.getScore()));
                     }
-                } else if (r.getName().equals("right square bracket")) {
-                    Calendar.nextMonth();
-                    Calendar.setStatusBar("Moved to next month via right bracket gesture with an accuracy score of: " + r.getScore());
-                } else if (r.getName().equals("left square bracket")) {
-                    Calendar.prevMonth();
-                    Calendar.setStatusBar("Moved to prev month via left bracket gesture with an accuracy score of: " + r.getScore());
-                }
-                // Checks for Vacation Tag
-                else if (r.getName().equals("star")) {
-                    if (strokeEvent != null) {
-                        strokeEvent.toggleTag("Vacation");
-                        Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + r.getScore());
-                    }
-                }
-                // Checks for Work Tag
-                else if (r.getName().equals("check")) {
-                    if (strokeEvent != null) {
-                        strokeEvent.toggleTag("Work");
-                        Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + r.getScore());
-                    }
-                }
-                // Checks for School Tag
-                else if (r.getName().equals("x")) {
-                    if (strokeEvent != null) {
-                        strokeEvent.toggleTag("School");
-                        Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + r.getScore());
-                    }
-                }
-                // Checks for Family Tag
-                else if (r.getName().equals("pigtail")) {
-                    if (strokeEvent != null) {
-                        strokeEvent.toggleTag("Family");
-                        Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + r.getScore());
-                    }
-                }
-                // Checks for Other Tag
-                else if (r.getName().equals("triangle")) {
-                    if (strokeEvent != null) {
-                        strokeEvent.toggleTag("Other");
-                        Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + r.getScore());
-                    }
-                }
-                // Checks Zig-Zag
-                else if (r.getName().equals("zig-zag")) {
-                    if (strokeEvent != null) {
-                        if (r.getCandidate().getRadians() < -1) {
-                            addVerticalEvents(strokeEvent);
-                            Calendar.setStatusBar("Added events vertically via zig-zag gesture with an accuracy score of: " + r.getScore());
-                        } else {
-                            addHorizontalEvents(strokeEvent);
-                            Calendar.setStatusBar("Added events horizontally via zig-zag gesture with an accuracy score of: " + r.getScore());
+                    // Checks for Vacation Tag
+                    else if (r.getName().equals("star")) {
+                        if (strokeEvent != null) {
+                            strokeEvent.toggleTag("Vacation");
+                            Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + round(r.getScore()));
                         }
                     }
-                }
-                // For Gestures that don't match
-                else {
-                    Calendar.setStatusBar("Gesture did not match");
+                    // Checks for Work Tag
+                    else if (r.getName().equals("check")) {
+                        if (strokeEvent != null) {
+                            strokeEvent.toggleTag("Work");
+                            Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + round(r.getScore()));
+                        }
+                    }
+                    // Checks for School Tag
+                    else if (r.getName().equals("x")) {
+                        if (strokeEvent != null) {
+                            strokeEvent.toggleTag("School");
+                            Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + round(r.getScore()));
+                        }
+                    }
+                    // Checks for Family Tag
+                    else if (r.getName().equals("pigtail")) {
+                        if (strokeEvent != null) {
+                            System.out.println(strokeEvent.getBoundingRectangle());
+                            strokeEvent.toggleTag("Family");
+                            Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + round(r.getScore()));
+                        }
+                    }
+                    // Checks for Other Tag
+                    else if (r.getName().equals("triangle")) {
+                        if (strokeEvent != null) {
+                            strokeEvent.toggleTag("Other");
+                            Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + round(r.getScore()));
+                        }
+                    }
+                    // Checks Zig-Zag
+                    else if (r.getName().equals("zig-zag")) {
+                        if (strokeEvent != null) {
+                            if (r.getCandidate().getRadians() < -1) {
+                                addVerticalEvents(strokeEvent);
+                                Calendar.setStatusBar("Added events vertically via zig-zag gesture with an accuracy score of: " + round(r.getScore()));
+                            } else {
+                                addHorizontalEvents(strokeEvent);
+                                Calendar.setStatusBar("Added events horizontally via zig-zag gesture with an accuracy score of: " + round(r.getScore()));
+                            }
+                        }
+                    }
+                    // For Gestures that don't match
+                    else {
+                        Calendar.setStatusBar("Gesture did not match");
+                    }
                 }
             }
 
@@ -473,19 +477,18 @@ public class MonthView extends JComponent {
         // Days before selected date
         while (c1 >= 1) {
             count1++;
-            EventDetails newEvent = e.copyEvent();
-            newEvent.setDate(e.getDate().minusDays(7 * count1));
+            EventDetails newEvent = e.copyEvent(e.getDate().minusDays(7 * count1));
             Calendar.addMap(newEvent);
             c1 -= 7;
         }
         // Days after selected date
         while (c2 <= totalDays) {
             count2++;
-            EventDetails newEvent = e.copyEvent();
-            newEvent.setDate(e.getDate().plusDays(7 * count2));
+            EventDetails newEvent = e.copyEvent(e.getDate().plusDays(7 * count2));
             Calendar.addMap(newEvent);
             c2 += 7;
         }
+        repaint();
     }
     private void addHorizontalEvents(EventDetails e) {
         DateTimeFormatter day = DateTimeFormatter.ofPattern("d");
@@ -506,12 +509,16 @@ public class MonthView extends JComponent {
         while (count < 7) {
             if (dayOfMonth - place + count >= 1 && dayOfMonth + count - place <= totalDays) {
                 if (count - place != 0) {
-                    EventDetails newEvent = e.copyEvent();
-                    newEvent.setDate(e.getDate().plusDays(count - place));
+                    EventDetails newEvent = e.copyEvent(e.getDate().plusDays(count - place));
                     Calendar.addMap(newEvent);
                 }
             }
             count++;
         }
+        repaint();
+    }
+
+    private double round(double v) {
+        return Math.round(v * Math.pow(10, 2)) / Math.pow(10, 2);
     }
 }

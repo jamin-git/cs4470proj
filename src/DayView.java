@@ -228,7 +228,6 @@ public class DayView extends JComponent {
                 left = false;
                 strokes = new ArrayList<>();
             }
-            System.out.println("Left: " + left + ", Right: " + right);
         }
 
         // This method is utilized to reset mouseDrag events when they are over
@@ -255,52 +254,52 @@ public class DayView extends JComponent {
                 if (r.getName().equals("delete")) {
                     if (strokeEvent != null) {
                         Calendar.removeMap(date ,strokeEvent);
-                        Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Event deleted via delete gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
 
                 else if (r.getName().equals("right square bracket")) {
                     Calendar.nextDay();
-                    Calendar.setStatusBar("Moved to next day via right bracket gesture with an accuracy score of: " + r.getScore());
+                    Calendar.setStatusBar("Moved to next day via right bracket gesture with an accuracy score of: " + round(r.getScore()));
                 }
 
                 else if (r.getName().equals("left square bracket")) {
                     Calendar.prevDay();
-                    Calendar.setStatusBar("Moved to prev day via left bracket gesture with an accuracy score of: " + r.getScore());
+                    Calendar.setStatusBar("Moved to prev day via left bracket gesture with an accuracy score of: " + round(r.getScore()));
                 }
                 // Checks for Vacation Tag
                 else if (r.getName().equals("star")) {
                     if (strokeEvent != null) {
                         strokeEvent.toggleTag("Vacation");
-                        Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Toggled Vacation Tag via star gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
                 // Checks for Work Tag
                 else if (r.getName().equals("check")) {
                     if (strokeEvent != null) {
                         strokeEvent.toggleTag("Work");
-                        Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Toggled Work Tag via check gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
                 // Checks for School Tag
                 else if (r.getName().equals("x")) {
                     if (strokeEvent != null) {
                         strokeEvent.toggleTag("School");
-                        Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Toggled School Tag via x gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
                 // Checks for Family Tag
                 else if (r.getName().equals("pigtail")) {
                     if (strokeEvent != null) {
                         strokeEvent.toggleTag("Family");
-                        Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
                 // Checks for Other tag
                 else if (r.getName().equals("triangle")) {
                     if (strokeEvent != null) {
                         strokeEvent.toggleTag("Other");
-                        Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Toggled Other Tag via triangle gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
 
@@ -316,7 +315,7 @@ public class DayView extends JComponent {
                             Calendar.updateEventStart(strokeEvent, start + temp);
                             Calendar.updateEventEnd(strokeEvent, end + temp);
                         }
-                        Calendar.setStatusBar("Moved time forward 1 hour via caret gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Moved time forward 1 hour via caret gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
 
@@ -332,7 +331,7 @@ public class DayView extends JComponent {
                             Calendar.updateEventStart(strokeEvent, start + temp);
                             Calendar.updateEventEnd(strokeEvent, end + temp);
                         }
-                        Calendar.setStatusBar("Moved time backward 1 hour via v gesture with an accuracy score of: " + r.getScore());
+                        Calendar.setStatusBar("Moved time backward 1 hour via v gesture with an accuracy score of: " + round(r.getScore()));
                     }
                 }
                 else {
@@ -436,5 +435,9 @@ public class DayView extends JComponent {
     }
     public void setSizey(int y) {
         ySize = y;
+    }
+
+    private double round(double v) {
+        return Math.round(v * Math.pow(10, 2)) / Math.pow(10, 2);
     }
 }

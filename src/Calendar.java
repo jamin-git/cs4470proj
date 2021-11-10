@@ -1,5 +1,6 @@
 
 import javax.swing.*;
+import javax.swing.text.html.ImageView;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.URL;
@@ -21,6 +22,7 @@ public class Calendar extends JFrame {
     private JMenuItem exit;
     private JMenuItem dayView;
     private JMenuItem monthView;
+    private JMenuItem gestureTable;
     private JMenuItem sky;
     private JMenuItem forest;
     private JMenuItem lavender;
@@ -90,6 +92,9 @@ public class Calendar extends JFrame {
     // Images
     private ImageIcon cal = new ImageIcon(getClass().getResource("Cal.png"));
     private static ImageIcon cal2 = new ImageIcon(Calendar.class.getResource("Cal.png"));
+    private ImageIcon gtableimg = new ImageIcon(Calendar.class.getResource("gesturetableS.png"));
+    private JPanel gtable = new JPanel();
+
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -115,6 +120,10 @@ public class Calendar extends JFrame {
         // Basic Styling
         changeTheme(forest);
 
+        // Gesture Table Image
+        JLabel picLabel = new JLabel(gtableimg);
+        gtable.add(picLabel);
+
         frame.pack();
         frame.setVisible(true);
     }
@@ -128,12 +137,14 @@ public class Calendar extends JFrame {
         exit = new JMenuItem("Exit");
         dayView = new JMenuItem("Day View");
         monthView = new JMenuItem("Month View");
+        gestureTable = new JMenuItem("Gesture Table");
         sky = new JMenuItem("Sky Theme");
         forest = new JMenuItem("Forest Theme");
         lavender = new JMenuItem("Lavender Theme");
         file.add(exit);
         view.add(dayView);
         view.add(monthView);
+        view.add(gestureTable);
         theme.add(sky);
         theme.add(forest);
         theme.add(lavender);
@@ -145,6 +156,7 @@ public class Calendar extends JFrame {
         exit.addActionListener(e -> System.exit(0));
         monthView.addActionListener(e -> changeMonth());
         dayView.addActionListener(e -> changeDay());
+        gestureTable.addActionListener(e -> showGestureTable());
         sky.addActionListener(e -> changeTheme(sky));
         forest.addActionListener(e -> changeTheme(forest));
         lavender.addActionListener(e -> changeTheme(lavender));
@@ -274,6 +286,9 @@ public class Calendar extends JFrame {
         isDay = true;
         temp = 0;
         statusBar.setText("Status: System changed to Day View");
+    }
+    private void showGestureTable() {
+        mainSection.setViewportView(gtable);
     }
     protected static void nextDay() {
         temp++;

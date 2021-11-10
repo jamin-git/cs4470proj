@@ -1,7 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class EventDetails implements Comparable {
     private String name;
@@ -101,7 +103,9 @@ public class EventDetails implements Comparable {
     public void setStartIndex(int startIndex) {
         this.startIndex = startIndex;
     }
-    public EventDetails copyEvent() {
-        return new EventDetails(this.name ,this.date, this.start, this.end, this.startIndex, this.endIndex, this.tags, this.time);
+    public EventDetails copyEvent(LocalDate date) {
+        ArrayList<String> tempTags = new ArrayList<>();
+        Collections.copy(tempTags, tags);
+        return new EventDetails(this.name , date, this.start, this.end, this.startIndex, this.endIndex, tempTags, this.time);
     }
 }
