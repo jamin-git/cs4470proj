@@ -1,9 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class EventDetails implements Comparable {
     private String name;
@@ -105,7 +103,17 @@ public class EventDetails implements Comparable {
     }
     public EventDetails copyEvent(LocalDate date) {
         ArrayList<String> tempTags = new ArrayList<>();
-        Collections.copy(tempTags, tags);
+        if (tags.contains("Vacation")) {
+            tempTags.add("Vacation");
+        } else if (tags.contains("Work")) {
+            tempTags.add("Work");
+        } else if (tags.contains("School")) {
+            tempTags.add("School");
+        } else if (tags.contains("Family")) {
+            tempTags.add("Family");
+        } else if (tags.contains("Other")) {
+            tempTags.add("Other");
+        }
         return new EventDetails(this.name , date, this.start, this.end, this.startIndex, this.endIndex, tempTags, this.time);
     }
 }
