@@ -4,8 +4,11 @@ import dollar.Result;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -37,6 +40,29 @@ public class DayView extends JComponent {
     private HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
     private ArrayList<EventDetails> list = map.get(date);
 
+    // Animation Variables
+    private Timer timerR = new Timer(25, new ActionListener() {
+        public void actionPerformed(ActionEvent event){
+            x += xVel;
+            count++;
+            repaint();
+            System.out.println("In Action Performed");
+        }
+    });
+    private Timer timerL = new Timer(25, new ActionListener() {
+        public void actionPerformed(ActionEvent event){
+            x += xVel;
+            count++;
+            repaint();
+            System.out.println("In Action Performed");
+        }
+    });
+    int x = 0;
+    int xVel = 40;
+    int count = 0;
+    boolean animationEnd = false;
+
+
     public DayView() {
         setDate(LocalDate.now());
     }
@@ -45,99 +71,156 @@ public class DayView extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // Creating Rectangle
-        g.setColor(gray);
-        if (Calendar.getTheme().equals("Sky")) {
-            g.setColor(new Color(157,189,209));
-        } else if (Calendar.getTheme().equals("Forest")) {
-            g.setColor(new Color(157,209,166));
-        } else if (Calendar.getTheme().equals("Lavender")) {
-            g.setColor(new Color(186,157,209) );
-        }
-        g.drawRect(0,0, xSize, ySize);
-        g.fillRect(0,0, xSize, ySize);
+        // Updating Window Size
+        xSize = Calendar.getScrollPaneWidth();
 
-        // Creating Date String
-        g.setColor(Color.BLACK);
-        g.setFont(franklinGothic);
-        FontMetrics fm = g.getFontMetrics();
-        String dateString = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
-        int x = (xSize / 2) - fm.stringWidth(dateString) / 2;
-        int y = fm.getHeight();
-        g.drawString(dateString, x, y + 5);
-
-        // Creating Rectangles
-        g.setColor(Color.BLACK);
-        g.setFont(sfranklinGothic);
-        FontMetrics sfm = g.getFontMetrics();
-        int count = 0;
-        int ypos = 50;
-        int i = 44;
-        while (count < 24) {
-            g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
-            if (rectList.size() < 97) {
-                rectList.add(new Rectangle(35, ypos + 0 * i / 4, xSize - 70, i / 4));
-                rectList.add(new Rectangle(35, ypos + 1 * i / 4, xSize - 70, i / 4));
-                rectList.add(new Rectangle(35, ypos + 2 * i / 4, xSize - 70, i / 4));
-                rectList.add(new Rectangle(35, ypos + 3 * i / 4, xSize - 70, i / 4));
+        if (Calendar.animateL) {
+            if (!animationEnd) {
+                System.out.println("Timer started");
+                timerL.restart();
+                animationEnd = !animationEnd;
             }
-            g.drawRect(35, ypos, xSize - 70, i);
-            count++;
-            ypos += i;
-        }
 
-        // Painting Events
-        list = map.get(date);
-        if (list != null) {
-            for (EventDetails e : list) {
+            g.drawImage(Calendar.nextImage, 0, 0, this);
 
-                // Setting Color of Event Box
-                if (e.getTags().contains("Other")) {
-                    g.setColor(new Color(66, 142, 89, 200));
-                } else if (e.getTags().contains("Family")) {
-                    g.setColor(new Color(243, 166, 14, 200));
-                } else if (e.getTags().contains("School")) {
-                    g.setColor(new Color(12, 85, 109, 200));
-                } else if (e.getTags().contains("Work")) {
-                    g.setColor(new Color(142, 70, 66, 200));
-                } else if (e.getTags().contains("Vacation")) {
-                    g.setColor(new Color(87, 213, 203, 200));
-                } else {
-                    g.setColor(new Color(141, 135, 145, 200));
-                }
 
-                int numStart = e.getStart();
-
-                // Temp is the initial offset of the time based on 15 min increments
-                int temp = numStart % 100;
-                temp = (temp / 15) * 11;
-
-                // Gets the Total Distance Between the two times
-                int height = e.getTime() * 11;
-
-                // First and Third inputs are the horizontal padding, 2nd and 4th get the starting pos and the ending pos
-                int yEventPosition = (numStart / 100) * i + 50 + temp;
-                Rectangle rect = new Rectangle(40, yEventPosition, xSize - 80, height);
-                e.setBoundingRectangle(rect);
-                g.fillRoundRect(40, yEventPosition, xSize - 80, height, 25, 25);
-                g.setColor(Color.BLACK);
-                g.drawString(e.getName(), 50, yEventPosition + sfm.getAscent());
+            if (count > 30) {
+                timerL.stop();
+                x = 0;
+                count = 0;
+                Calendar.animateL = false;
+                repaint();
+                animationEnd = !animationEnd;
+                System.out.println("Timer Ended");
             }
-        }
 
-        // Painting Time-Of-Day Line
-        g.setColor(Color.RED);
-        g.drawLine(35, yLine, xSize - 35, yLine);
+            int width = (xSize) - (xSize * count / 31);
+            BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+            g.drawImage(portion, 0, 0, this);
+            g.setColor(Color.WHITE);
+            g.fillRect(x, 0, 100, ySize);
+        } else if (Calendar.animateR) {
 
-        // Drawing the Strokes
-        g.setColor(Color.BLUE);
-        if (strokes != null) {
-            Point2D temp = null;
-            for (Point2D stroke : strokes) {
-                if (temp != null) {
-                    g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+            if (!animationEnd) {
+                System.out.println("Timer started");
+                timerR.restart();
+                animationEnd = !animationEnd;
+            }
+
+            g.drawImage(Calendar.nextImage, 0, 0, this);
+
+            if (count > 30) {
+                timerR.stop();
+                x = 0;
+                count = 0;
+                Calendar.animateR = false;
+                repaint();
+                animationEnd = !animationEnd;
+                System.out.println("Timer Ended");
+            }
+
+
+            int width = (xSize) - (xSize * count / 31);
+            BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+            g.drawImage(portion, 0, 0, this);
+            g.setColor(Color.WHITE);
+            g.fillRect(xSize - x, 0, 100, ySize);
+        } else {
+            // Creating Rectangle
+            g.setColor(gray);
+            if (Calendar.getTheme().equals("Sky")) {
+                g.setColor(new Color(157,189,209));
+            } else if (Calendar.getTheme().equals("Forest")) {
+                g.setColor(new Color(157,209,166));
+            } else if (Calendar.getTheme().equals("Lavender")) {
+                g.setColor(new Color(186,157,209) );
+            }
+            g.drawRect(0,0, xSize, ySize);
+            g.fillRect(0,0, xSize, ySize);
+
+            // Creating Date String
+            g.setColor(Color.BLACK);
+            g.setFont(franklinGothic);
+            FontMetrics fm = g.getFontMetrics();
+            String dateString = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).format(date);
+            int x = (xSize / 2) - fm.stringWidth(dateString) / 2;
+            int y = fm.getHeight();
+            g.drawString(dateString, x, y + 5);
+
+            // Creating Rectangles
+            g.setColor(Color.BLACK);
+            g.setFont(sfranklinGothic);
+            FontMetrics sfm = g.getFontMetrics();
+            int count = 0;
+            int ypos = 50;
+            int i = 44;
+            while (count < 24) {
+                g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
+                if (rectList.size() < 97) {
+                    rectList.add(new Rectangle(35, ypos + 0 * i / 4, xSize - 70, i / 4));
+                    rectList.add(new Rectangle(35, ypos + 1 * i / 4, xSize - 70, i / 4));
+                    rectList.add(new Rectangle(35, ypos + 2 * i / 4, xSize - 70, i / 4));
+                    rectList.add(new Rectangle(35, ypos + 3 * i / 4, xSize - 70, i / 4));
                 }
-                temp = stroke;
+                g.drawRect(35, ypos, xSize - 70, i);
+                count++;
+                ypos += i;
+            }
+
+            // Painting Events
+            list = map.get(date);
+            if (list != null) {
+                for (EventDetails e : list) {
+
+                    // Setting Color of Event Box
+                    if (e.getTags().contains("Other")) {
+                        g.setColor(new Color(66, 142, 89, 200));
+                    } else if (e.getTags().contains("Family")) {
+                        g.setColor(new Color(243, 166, 14, 200));
+                    } else if (e.getTags().contains("School")) {
+                        g.setColor(new Color(12, 85, 109, 200));
+                    } else if (e.getTags().contains("Work")) {
+                        g.setColor(new Color(142, 70, 66, 200));
+                    } else if (e.getTags().contains("Vacation")) {
+                        g.setColor(new Color(87, 213, 203, 200));
+                    } else {
+                        g.setColor(new Color(141, 135, 145, 200));
+                    }
+
+                    int numStart = e.getStart();
+
+                    // Temp is the initial offset of the time based on 15 min increments
+                    int temp = numStart % 100;
+                    temp = (temp / 15) * 11;
+
+                    // Gets the Total Distance Between the two times
+                    int height = e.getTime() * 11;
+
+                    // First and Third inputs are the horizontal padding, 2nd and 4th get the starting pos and the ending pos
+                    int yEventPosition = (numStart / 100) * i + 50 + temp;
+                    Rectangle rect = new Rectangle(40, yEventPosition, xSize - 80, height);
+                    e.setBoundingRectangle(rect);
+                    System.out.println(e.getBoundingRectangle());
+                    g.fillRoundRect(40, yEventPosition, xSize - 80, height, 25, 25);
+                    g.setColor(Color.BLACK);
+                    g.drawString(e.getName(), 50, yEventPosition + sfm.getAscent());
+                }
+            }
+
+            // Painting Time-Of-Day Line
+            g.setColor(Color.RED);
+            g.drawLine(35, yLine, xSize - 35, yLine);
+
+            // Drawing the Strokes
+            g.setColor(Color.BLUE);
+            if (strokes != null) {
+                Point2D temp = null;
+                for (Point2D stroke : strokes) {
+                    if (temp != null) {
+                        g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+                    }
+                    temp = stroke;
+                }
             }
         }
     }

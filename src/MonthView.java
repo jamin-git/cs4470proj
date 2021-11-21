@@ -2,10 +2,14 @@ import dollar.DollarRecognizer;
 import dollar.Result;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,6 +43,29 @@ public class MonthView extends JComponent {
     private HashMap<LocalDate, ArrayList<EventDetails>> map = Calendar.getEventDetails();
     private ArrayList<EventDetails> list = map.get(date);
 
+
+    // Animation Variables
+    private Timer timerR = new Timer(25, new ActionListener() {
+        public void actionPerformed(ActionEvent event){
+            x += xVel;
+            count++;
+            repaint();
+            System.out.println("In Action Performed");
+        }
+    });
+    private Timer timerL = new Timer(25, new ActionListener() {
+        public void actionPerformed(ActionEvent event){
+            x += xVel;
+            count++;
+            repaint();
+            System.out.println("In Action Performed");
+        }
+    });
+    int x = 0;
+    int xVel = 40;
+    int count = 0;
+    boolean animationEnd = false;
+
     public MonthView() {
         date = LocalDate.now();
     }
@@ -54,182 +81,234 @@ public class MonthView extends JComponent {
         ySize = Calendar.getScrollPaneHeight();
 
 
-
-        // Creating Rectangle
-        g.setColor(gray);
-        if (Calendar.getTheme().equals("Sky")) {
-            g.setColor(new Color(157,189,209));
-        } else if (Calendar.getTheme().equals("Forest")) {
-            g.setColor(new Color(157,209,166));
-        } else if (Calendar.getTheme().equals("Lavender")) {
-            g.setColor(new Color(186,157,209) );
-        }
-        g.drawRect(0,0, xSize, ySize);
-        g.fillRect(0,0, xSize, ySize);
-
-        // Creating Date String
-        g.setColor(Color.BLACK);
-        g.setFont(franklinGothic);
-        FontMetrics fm = g.getFontMetrics();
-        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, YYYY");
-        String dateString = date.format(monthFormatter);
-        int x = (xSize / 2) - fm.stringWidth(dateString) / 2;
-        int y = fm.getHeight();
-        g.drawString(dateString, x, y + 5);
-
-
-        // Painting 6x7 Grid with resizability
-        int width = xSize - 25;
-        int height = ySize - 100;
-
-        int rectWidth = width / columnCount;
-        int rectHeight = height / rowCount;
-
-        int xOffset = (width - (columnCount * rectWidth)) / 2;
-        int yOffset = (height + 150 - (rowCount * rectHeight)) / 2;
-
-        boolean drawnDays = false;
-
-        // Drawing Grid + Labels
-        for (int row = 0; row < rowCount; row++) {
-            for (int col = 0; col < columnCount; col++) {
-                if (rectList.size() < 42) {
-                    rectList.add(new Rectangle(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
-                            rectWidth, rectHeight));
-                }
-                g.drawRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
-                        rectWidth, rectHeight);
-                if (!drawnDays) {
-                    for (int i = 0; i < arrDays.length; i++) {
-                        String day = arrDays[i];
-                        int xPos = i * rectWidth + rectWidth / 2 - fm.stringWidth(day) / 2;
-                        int yPos = fm.getHeight() + 50;
-                        g.drawString(day, xPos, yPos);
-                    }
-                    drawnDays = true;
-                }
+        if (Calendar.animateL) {
+            if (!animationEnd) {
+                System.out.println("Timer started");
+                timerL.restart();
+                animationEnd = !animationEnd;
             }
-        }
 
-        // Data Initialization
-        LocalDate start = date.withDayOfMonth(1);
-        DateTimeFormatter day = DateTimeFormatter.ofPattern("EEEE");
-        DateTimeFormatter currDay = DateTimeFormatter.ofPattern("d");
-        DateTimeFormatter currMonth = DateTimeFormatter.ofPattern("MMMM");
-        String dayString = day.format(start);
-        boolean monthStart = false;
-        countDays = 0;
-        initGrayBoxes = 0;
+            g.drawImage(Calendar.nextImage, 0, 0, this);
 
-        // Filling Inactive Cells and Numbering
-        for (int row = 0; row < rowCount; row++) {
-            for (int col = 0; col < columnCount; col++) {
-                g.setColor(new Color(0, 0, 0, 130));
-                if (!monthStart) {
-                    if (arrDays[col].equals(dayString)) {
-                        col--;
-                        monthStart = true;
-                    } else {
-                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
-                                rectWidth, rectHeight);
-                        initGrayBoxes++;
-                    }
-                } else {
-                    countDays++;
-                    if (countDays == Integer.parseInt(currDay.format(date)) && currMonth.format(date).equals(currMonth.format(LocalDate.now()))) {
-                        g.setColor(new Color(255, 255, 255, 100));
-                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
-                                rectWidth, rectHeight);
-                    }
-                    if (countDays > date.lengthOfMonth()) {
-                        g.setColor(new Color(0, 0, 0, 130));
-                        g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
-                                rectWidth, rectHeight);
-                        countDays--;
-                    } else {
-                        g.setColor(Color.black);
-                        g.drawString(String.valueOf(countDays), xOffset + (col * rectWidth) + 3 , yOffset + (row * rectHeight) + 13);
-                    }
-                }
+
+            if (count > 30) {
+                timerL.stop();
+                x = 0;
+                count = 0;
+                Calendar.animateL = false;
+                repaint();
+                animationEnd = !animationEnd;
+                System.out.println("Timer Ended");
             }
-        }
 
-        // Painting Events
-        map = Calendar.getEventDetails();
-        DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
-        String monthString = month.format(date);
+            int width = (xSize) - (xSize * count / 31);
+            BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+            g.drawImage(portion, 0, 0, this);
+            g.setColor(Color.WHITE);
+            g.fillRect(x, 0, 100, ySize);
+        } else if (Calendar.animateR) {
 
-        DateTimeFormatter dayInt = DateTimeFormatter.ofPattern("d");
-        int eventHeight = 15;
-        int topDist = 15;
-        g.setFont(sfranklinGothic);
-        fm = g.getFontMetrics();
+            if (!animationEnd) {
+                System.out.println("Timer started");
+                timerR.restart();
+                animationEnd = !animationEnd;
+            }
 
-        for (LocalDate temp : map.keySet()) {
-            if (month.format(temp).equals(monthString)) {
-                list = map.get(temp);
-                // Sorting the ArrayList so events are displayed in order
-                Collections.sort(list);
-                int size = (rectHeight - 20) / eventHeight;
-                if (list != null) {
-                    for (int i = 0; i < list.size(); i++) {
-                        if (i >= size) {
-                            break;
+            g.drawImage(Calendar.nextImage, 0, 0, this);
+
+            if (count > 30) {
+                timerR.stop();
+                x = 0;
+                count = 0;
+                Calendar.animateR = false;
+                repaint();
+                animationEnd = !animationEnd;
+                System.out.println("Timer Ended");
+            }
+
+
+            int width = (xSize) - (xSize * count / 31);
+            BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+            g.drawImage(portion, 0, 0, this);
+            g.setColor(Color.WHITE);
+            g.fillRect(xSize - x, 0, 100, ySize);
+        } else {
+            // Creating Rectangle
+            g.setColor(gray);
+            if (Calendar.getTheme().equals("Sky")) {
+                g.setColor(new Color(157,189,209));
+            } else if (Calendar.getTheme().equals("Forest")) {
+                g.setColor(new Color(157,209,166));
+            } else if (Calendar.getTheme().equals("Lavender")) {
+                g.setColor(new Color(186,157,209) );
+            }
+            g.drawRect(0,0, xSize, ySize);
+            g.fillRect(0,0, xSize, ySize);
+
+            // Creating Date String
+            g.setColor(Color.BLACK);
+            g.setFont(franklinGothic);
+            FontMetrics fm = g.getFontMetrics();
+            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM, YYYY");
+            String dateString = date.format(monthFormatter);
+            int x = (xSize / 2) - fm.stringWidth(dateString) / 2;
+            int y = fm.getHeight();
+            g.drawString(dateString, x, y + 5);
+
+
+            // Painting 6x7 Grid with resizability
+            int width = xSize - 25;
+            int height = ySize - 100;
+
+            int rectWidth = width / columnCount;
+            int rectHeight = height / rowCount;
+
+            int xOffset = (width - (columnCount * rectWidth)) / 2;
+            int yOffset = (height + 150 - (rowCount * rectHeight)) / 2;
+
+            boolean drawnDays = false;
+
+            // Drawing Grid + Labels
+            for (int row = 0; row < rowCount; row++) {
+                for (int col = 0; col < columnCount; col++) {
+                    if (rectList.size() < 42) {
+                        rectList.add(new Rectangle(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                rectWidth, rectHeight));
+                    }
+                    g.drawRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                            rectWidth, rectHeight);
+                    if (!drawnDays) {
+                        for (int i = 0; i < arrDays.length; i++) {
+                            String day = arrDays[i];
+                            int xPos = i * rectWidth + rectWidth / 2 - fm.stringWidth(day) / 2;
+                            int yPos = fm.getHeight() + 50;
+                            g.drawString(day, xPos, yPos);
                         }
-                        // Storing event and other vars
-                        EventDetails e = list.get(i);
-                        Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(e.getDate())) + initGrayBoxes - 1);
-                        int vertPadding = (i * eventHeight + 2);
+                        drawnDays = true;
+                    }
+                }
+            }
 
-                        // Drawing event box
+            // Data Initialization
+            LocalDate start = date.withDayOfMonth(1);
+            DateTimeFormatter day = DateTimeFormatter.ofPattern("EEEE");
+            DateTimeFormatter currDay = DateTimeFormatter.ofPattern("d");
+            DateTimeFormatter currMonth = DateTimeFormatter.ofPattern("MMMM");
+            String dayString = day.format(start);
+            boolean monthStart = false;
+            countDays = 0;
+            initGrayBoxes = 0;
 
-                        // Setting Color of Event Box
-                        if (e.getTags().contains("Other")) {
-                            g.setColor(new Color(66, 142, 89, 200));
-                        } else if (e.getTags().contains("Family")) {
-                            g.setColor(new Color(243, 166, 14, 200));
-                        } else if (e.getTags().contains("School")) {
-                            g.setColor(new Color(12, 85, 109, 200));
-                        } else if (e.getTags().contains("Work")) {
-                            g.setColor(new Color(142, 70, 66, 200));
-                        } else if (e.getTags().contains("Vacation")) {
-                            g.setColor(new Color(87, 213, 203, 200));
+            // Filling Inactive Cells and Numbering
+            for (int row = 0; row < rowCount; row++) {
+                for (int col = 0; col < columnCount; col++) {
+                    g.setColor(new Color(0, 0, 0, 130));
+                    if (!monthStart) {
+                        if (arrDays[col].equals(dayString)) {
+                            col--;
+                            monthStart = true;
                         } else {
-                            g.setColor(new Color(141, 135, 145, 200));
+                            g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                    rectWidth, rectHeight);
+                            initGrayBoxes++;
                         }
-                        // Drawing Event Rectangle + Setting Bounding Box of Event
-                        Rectangle rect = new Rectangle((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight);
-                        g.fillRoundRect((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight, 10, 10);
-                        e.setBoundingRectangle(rect);
+                    } else {
+                        countDays++;
+                        if (countDays == Integer.parseInt(currDay.format(date)) && currMonth.format(date).equals(currMonth.format(LocalDate.now()))) {
+                            g.setColor(new Color(255, 255, 255, 100));
+                            g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                    rectWidth, rectHeight);
+                        }
+                        if (countDays > date.lengthOfMonth()) {
+                            g.setColor(new Color(0, 0, 0, 130));
+                            g.fillRect(xOffset + (col * rectWidth), yOffset + (row * rectHeight),
+                                    rectWidth, rectHeight);
+                            countDays--;
+                        } else {
+                            g.setColor(Color.black);
+                            g.drawString(String.valueOf(countDays), xOffset + (col * rectWidth) + 3 , yOffset + (row * rectHeight) + 13);
+                        }
+                    }
+                }
+            }
 
-                        // Resizing Name
-                        String tempName = e.getName();
-                        String ellipse = "...";
-                        if (fm.stringWidth(tempName) > (int) curr.getWidth() - 10) {
-                            for (int j = tempName.length(); j > 0; j--) {
-                                tempName = tempName.substring(0, j);
-                                if (fm.stringWidth(tempName) + fm.stringWidth(ellipse) < (int) curr.getWidth() - 10) {
-                                    tempName = tempName + ellipse;
-                                    break;
+            // Painting Events
+            map = Calendar.getEventDetails();
+            DateTimeFormatter month = DateTimeFormatter.ofPattern("MMMM");
+            String monthString = month.format(date);
+
+            DateTimeFormatter dayInt = DateTimeFormatter.ofPattern("d");
+            int eventHeight = 15;
+            int topDist = 15;
+            g.setFont(sfranklinGothic);
+            fm = g.getFontMetrics();
+
+            for (LocalDate temp : map.keySet()) {
+                if (month.format(temp).equals(monthString)) {
+                    list = map.get(temp);
+                    // Sorting the ArrayList so events are displayed in order
+                    Collections.sort(list);
+                    int size = (rectHeight - 20) / eventHeight;
+                    if (list != null) {
+                        for (int i = 0; i < list.size(); i++) {
+                            if (i >= size) {
+                                break;
+                            }
+                            // Storing event and other vars
+                            EventDetails e = list.get(i);
+                            Rectangle curr = rectList.get(Integer.parseInt(dayInt.format(e.getDate())) + initGrayBoxes - 1);
+                            int vertPadding = (i * eventHeight + 2);
+
+                            // Drawing event box
+
+                            // Setting Color of Event Box
+                            if (e.getTags().contains("Other")) {
+                                g.setColor(new Color(66, 142, 89, 200));
+                            } else if (e.getTags().contains("Family")) {
+                                g.setColor(new Color(243, 166, 14, 200));
+                            } else if (e.getTags().contains("School")) {
+                                g.setColor(new Color(12, 85, 109, 200));
+                            } else if (e.getTags().contains("Work")) {
+                                g.setColor(new Color(142, 70, 66, 200));
+                            } else if (e.getTags().contains("Vacation")) {
+                                g.setColor(new Color(87, 213, 203, 200));
+                            } else {
+                                g.setColor(new Color(141, 135, 145, 200));
+                            }
+                            // Drawing Event Rectangle + Setting Bounding Box of Event
+                            Rectangle rect = new Rectangle((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight);
+                            g.fillRoundRect((int) curr.getX() + 5, (int) curr.getY() + topDist + vertPadding, (int) curr.getWidth() - 10, eventHeight, 10, 10);
+                            e.setBoundingRectangle(rect);
+
+                            // Resizing Name
+                            String tempName = e.getName();
+                            String ellipse = "...";
+                            if (fm.stringWidth(tempName) > (int) curr.getWidth() - 10) {
+                                for (int j = tempName.length(); j > 0; j--) {
+                                    tempName = tempName.substring(0, j);
+                                    if (fm.stringWidth(tempName) + fm.stringWidth(ellipse) < (int) curr.getWidth() - 10) {
+                                        tempName = tempName + ellipse;
+                                        break;
+                                    }
                                 }
                             }
+                            // Drawing Name
+                            g.setColor(Color.BLACK);
+                            g.drawString(tempName, (int) curr.getX() + 7, (int) curr.getY() + 11 + vertPadding + fm.getHeight());
                         }
-                        // Drawing Name
-                        g.setColor(Color.BLACK);
-                        g.drawString(tempName, (int) curr.getX() + 7, (int) curr.getY() + 11 + vertPadding + fm.getHeight());
                     }
                 }
             }
-        }
-        // Drawing the Strokes
-        g.setColor(Color.BLUE);
-        if (strokes != null) {
-            Point2D temp = null;
-            for (Point2D stroke : strokes) {
-                if (temp != null) {
-                    g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+            // Drawing the Strokes
+            g.setColor(Color.BLUE);
+            if (strokes != null) {
+                Point2D temp = null;
+                for (Point2D stroke : strokes) {
+                    if (temp != null) {
+                        g.drawLine((int)temp.getX(), (int)temp.getY(), (int)stroke.getX(), (int)stroke.getY());
+                    }
+                    temp = stroke;
                 }
-                temp = stroke;
             }
         }
     }

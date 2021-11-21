@@ -2,6 +2,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -94,6 +95,11 @@ public class Calendar extends JFrame {
     private ImageIcon gtableimg = new ImageIcon(Calendar.class.getResource("gesturetableS.png"));
     private JPanel gtable = new JPanel();
 
+    // Animation Vars
+    protected static boolean animateL = false;
+    protected static boolean animateR = false;
+    protected static BufferedImage currImage;
+    protected static BufferedImage nextImage;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -272,6 +278,20 @@ public class Calendar extends JFrame {
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
     }
 
+    // Animation Methods
+    public static BufferedImage makeOffscreenImage(JComponent source) {
+        // Create our BufferedImage and get a Graphics object for it
+        GraphicsConfiguration gfxConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        BufferedImage offscreenImage = gfxConfig.createCompatibleImage(source.getWidth(), source.getHeight());
+        Graphics2D offscreenGraphics = (Graphics2D) offscreenImage.getGraphics();
+
+        // Tell the component to paint itself onto the image
+        source.paint(offscreenGraphics);
+
+        // return the image
+        return offscreenImage;
+    }
+
     private void changeMonth() {
         mV.setDate(LocalDate.now());
         mainSection.setViewportView(mV);
@@ -292,32 +312,61 @@ public class Calendar extends JFrame {
     protected static void nextDay() {
         temp++;
         LocalDate date = LocalDate.now();
+
+        currImage = makeOffscreenImage(dV);
+
         date = date.plusDays(temp);
         dV.setDate(date);
+
+        nextImage = makeOffscreenImage(dV);
+        animateR = true;
+
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Forward 1 Day");
     }
     protected static void prevDay() {
         temp--;
         LocalDate date = LocalDate.now();
+
+        currImage = makeOffscreenImage(dV);
+
         date = date.plusDays(temp);
         dV.setDate(date);
+
+        nextImage = makeOffscreenImage(dV);
+        animateL = true;
+
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
     protected static void nextMonth() {
         temp++;
         LocalDate date = LocalDate.now();
+
+        currImage = makeOffscreenImage(mV);
+
         date = date.plusMonths(temp);
         mV.setDate(date);
+
+        nextImage = makeOffscreenImage(mV);
+        animateR = true;
+
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Forward 1 Month");
     }
     protected static void prevMonth() {
         temp--;
         LocalDate date = LocalDate.now();
+
+        currImage = makeOffscreenImage(mV);
+
         date = date.plusMonths(temp);
+
         mV.setDate(date);
+
+        nextImage = makeOffscreenImage(mV);
+        animateL = true;
+
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Backward 1 Month");
     }
