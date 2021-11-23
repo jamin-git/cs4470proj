@@ -96,8 +96,8 @@ public class Calendar extends JFrame {
     private JPanel gtable = new JPanel();
 
     // Animation Vars
-    protected static boolean animateL = false;
-    protected static boolean animateR = false;
+    protected static boolean animateNext = false;
+    protected static boolean animatePrev = false;
     protected static BufferedImage currImage;
     protected static BufferedImage nextImage;
 
@@ -319,7 +319,7 @@ public class Calendar extends JFrame {
         dV.setDate(date);
 
         nextImage = makeOffscreenImage(dV);
-        animateR = true;
+        animateNext = true;
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Forward 1 Day");
@@ -334,7 +334,21 @@ public class Calendar extends JFrame {
         dV.setDate(date);
 
         nextImage = makeOffscreenImage(dV);
-        animateL = true;
+        animatePrev = true;
+
+        mainSection.setViewportView(dV);
+        statusBar.setText("Status: Moved Backward 1 Day");
+    }
+    protected static void prevDayAnim() {
+        temp--;
+        LocalDate date = LocalDate.now();
+
+        currImage = makeOffscreenImage(dV);
+
+        date = date.plusDays(temp);
+        dV.setDate(date);
+
+        nextImage = makeOffscreenImage(dV);
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Backward 1 Day");
@@ -349,7 +363,7 @@ public class Calendar extends JFrame {
         mV.setDate(date);
 
         nextImage = makeOffscreenImage(mV);
-        animateR = true;
+        animateNext = true;
 
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Forward 1 Month");
@@ -365,7 +379,7 @@ public class Calendar extends JFrame {
         mV.setDate(date);
 
         nextImage = makeOffscreenImage(mV);
-        animateL = true;
+        animatePrev = true;
 
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Backward 1 Month");

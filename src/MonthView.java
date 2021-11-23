@@ -81,7 +81,7 @@ public class MonthView extends JComponent {
         ySize = Calendar.getScrollPaneHeight();
 
 
-        if (Calendar.animateL) {
+        if (Calendar.animateNext) {
             if (!animationEnd) {
                 System.out.println("Timer started");
                 timerL.restart();
@@ -95,7 +95,7 @@ public class MonthView extends JComponent {
                 timerL.stop();
                 x = 0;
                 count = 0;
-                Calendar.animateL = false;
+                Calendar.animateNext = false;
                 repaint();
                 animationEnd = !animationEnd;
                 System.out.println("Timer Ended");
@@ -106,7 +106,7 @@ public class MonthView extends JComponent {
             g.drawImage(portion, 0, 0, this);
             g.setColor(Color.WHITE);
             g.fillRect(x, 0, 100, ySize);
-        } else if (Calendar.animateR) {
+        } else if (Calendar.animatePrev) {
 
             if (!animationEnd) {
                 System.out.println("Timer started");
@@ -120,7 +120,7 @@ public class MonthView extends JComponent {
                 timerR.stop();
                 x = 0;
                 count = 0;
-                Calendar.animateR = false;
+                Calendar.animatePrev = false;
                 repaint();
                 animationEnd = !animationEnd;
                 System.out.println("Timer Ended");
