@@ -100,6 +100,7 @@ public class Calendar extends JFrame {
     protected static boolean animatePrev = false;
     protected static BufferedImage currImage;
     protected static BufferedImage nextImage;
+    protected static BufferedImage prevImage;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -298,6 +299,7 @@ public class Calendar extends JFrame {
         isDay = false;
         temp = 0;
         statusBar.setText("Status: System changed to Month View");
+        updatemVImages();
     }
     private void changeDay() {
         dV.setDate(LocalDate.now());
@@ -305,55 +307,71 @@ public class Calendar extends JFrame {
         isDay = true;
         temp = 0;
         statusBar.setText("Status: System changed to Day View");
+        updatedVImages();
     }
     private void showGestureTable() {
         mainSection.setViewportView(gtable);
     }
+
+    protected static void updatedVImages() {
+        LocalDate curr = dV.getDate();
+
+        dV.setDate(curr.plusDays(1));
+        nextImage = makeOffscreenImage(dV);
+
+        dV.setDate(curr.minusDays(1));
+        prevImage = makeOffscreenImage(dV);
+
+        dV.setDate(curr);
+        currImage = makeOffscreenImage(dV);
+    }
+    protected static void updatemVImages() {
+        LocalDate curr = dV.getDate();
+
+        dV.setDate(curr.plusDays(1));
+        nextImage = makeOffscreenImage(dV);
+
+        dV.setDate(curr.minusDays(1));
+        prevImage = makeOffscreenImage(dV);
+
+        dV.setDate(curr);
+        currImage = makeOffscreenImage(dV);
+    }
+
     protected static void nextDay() {
+        updatedVImages();
+
         temp++;
         LocalDate date = LocalDate.now();
 
-        currImage = makeOffscreenImage(dV);
+        //currImage = makeOffscreenImage(dV);
 
         date = date.plusDays(temp);
         dV.setDate(date);
 
-        nextImage = makeOffscreenImage(dV);
+        //nextImage = makeOffscreenImage(dV);
         animateNext = true;
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Forward 1 Day");
     }
     protected static void prevDay() {
+        updatedVImages();
+
         temp--;
         LocalDate date = LocalDate.now();
-
-        currImage = makeOffscreenImage(dV);
 
         date = date.plusDays(temp);
         dV.setDate(date);
 
-        nextImage = makeOffscreenImage(dV);
         animatePrev = true;
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Backward 1 Day");
     }
-    protected static void prevDayAnim() {
-        temp--;
-        LocalDate date = LocalDate.now();
-
-        currImage = makeOffscreenImage(dV);
-
-        date = date.plusDays(temp);
-        dV.setDate(date);
-
-        nextImage = makeOffscreenImage(dV);
-
-        mainSection.setViewportView(dV);
-        statusBar.setText("Status: Moved Backward 1 Day");
-    }
     protected static void nextMonth() {
+
+
         temp++;
         LocalDate date = LocalDate.now();
 

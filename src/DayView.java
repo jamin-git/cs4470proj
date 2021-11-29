@@ -47,25 +47,25 @@ public class DayView extends JComponent {
         public void actionPerformed(ActionEvent event){
             count++;
             repaint();
-            System.out.println("In Action Performed");
         }
     });
     private Timer timerL = new Timer(25, new ActionListener() {
         public void actionPerformed(ActionEvent event){
             count++;
             repaint();
-            System.out.println("In Action Performed");
         }
     });
 
     private boolean dragRight = false;
     private boolean dragLeft = false;
+    private boolean completeLeft = false;
+    private boolean completeRight = false;
     private int xPos = 0;
 
 
-    int count = 0;
-    boolean animationEnd = false;
-    boolean doOnce = false;
+    private int count = 0;
+    private boolean animationEnd = false;
+    private boolean doOnce = false;
 
 
     public DayView() {
@@ -79,14 +79,13 @@ public class DayView extends JComponent {
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
 
+
         // prev
         if (Calendar.animateNext) {
             if (!animationEnd) {
-                System.out.println("Timer started L");
                 timerL.restart();
                 animationEnd = !animationEnd;
             }
-
             g.drawImage(Calendar.nextImage, 0, 0, this);
 
 
@@ -96,7 +95,6 @@ public class DayView extends JComponent {
                 Calendar.animateNext = false;
                 repaint();
                 animationEnd = !animationEnd;
-                System.out.println("Timer Ended");
             }
 
             int width = (xSize) - (xSize * count / 41);
@@ -109,7 +107,6 @@ public class DayView extends JComponent {
         } else if (Calendar.animatePrev) {
 
             if (!animationEnd) {
-                System.out.println("Timer started");
                 timerR.restart();
                 animationEnd = !animationEnd;
             }
@@ -122,12 +119,11 @@ public class DayView extends JComponent {
                 Calendar.animatePrev = false;
                 repaint();
                 animationEnd = !animationEnd;
-                System.out.println("Timer Ended");
             }
 
 
             int width = xSize * count / 41 + 1;
-            BufferedImage portion = Calendar.nextImage.getSubimage(0, 0, width, ySize);
+            BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
             g.drawImage(portion, 0, 0, this);
             g.setColor(Color.gray);
             g.fillRect(width, 0, 60, ySize);
@@ -135,19 +131,64 @@ public class DayView extends JComponent {
         } else if (dragLeft) {
             if (!doOnce) {
                 doOnce = true;
-                Calendar.prevDayAnim();
             }
-            if (doOnce && Calendar.currImage != null && Calendar.nextImage != null) {
-                g.drawImage(Calendar.currImage, 0, 0, this);
+            if (doOnce) {
 
-                BufferedImage portion = Calendar.nextImage.getSubimage(0, 0, xPos, ySize);
+                g.drawImage(Calendar.prevImage, 0, 0, this);
+
+                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(portion, xPos, 0, this);
+
+                g.setColor(Color.gray);
+                g.fillRect(xPos, 0, 40, ySize);
+            }
+            if (completeLeft) {
+                int temp = 5000;
+                int w = 0;
+                for (int i = 0; i < 41; i++) {
+                    w = xSize * i / 41 + 1;
+                    if (temp >= Math.abs(xPos - w)) {
+                        temp = Math.abs(xPos - w);
+                        count = i;
+                    }
+                }
+                System.out.println("made it!");
+
+                if (!animationEnd) {
+                    timerR.restart();
+                    animationEnd = !animationEnd;
+                }
+
+                if (count > 40) {
+                    timerR.stop();
+                    count = 0;
+                    repaint();
+                    completeLeft = false;
+                    dragLeft = false;
+                }
+
+
+                int width = xSize * count / 41 + 1;
+                BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
                 g.drawImage(portion, 0, 0, this);
-            }
-            System.out.println(xPos);
-            g.setColor(Color.gray);
-            g.fillRect(xPos, 0, 60, ySize);
-        } else if (dragRight) {
+                g.setColor(Color.gray);
+                g.fillRect(width, 0, 60, ySize);
 
+            }
+        } else if (dragRight) {
+            if (!doOnce) {
+                doOnce = true;
+            }
+            if (doOnce) {
+
+                g.drawImage(Calendar.nextImage, 0, 0, this);
+
+                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(portion, xPos - xSize, 0, this);
+
+                g.setColor(Color.gray);
+                g.fillRect(xPos, 0, 40, ySize);
+            }
         } else {
             // Creating Rectangle
             g.setColor(gray);
@@ -174,18 +215,18 @@ public class DayView extends JComponent {
             g.setColor(Color.BLACK);
             g.setFont(sfranklinGothic);
             FontMetrics sfm = g.getFontMetrics();
-            int count = 0;
+            int countPaint = 0;
             int ypos = 50;
             int i = 44;
 
             // Resize Check
             if (rectList.size() > 0 && rectList.get(0).width != xSize) {
-                count = 0;
+                countPaint = 0;
                 rectList.clear();
             }
 
-            while (count < 24) {
-                g.drawString(count + ":00", 5, ypos + sfm.getAscent() / 2);
+            while (countPaint < 24) {
+                g.drawString(countPaint + ":00", 5, ypos + sfm.getAscent() / 2);
                 if (rectList.size() < 97) {
                     rectList.add(new Rectangle(35, ypos + 0 * i / 4, xSize - 70, i / 4));
                     rectList.add(new Rectangle(35, ypos + 1 * i / 4, xSize - 70, i / 4));
@@ -193,7 +234,7 @@ public class DayView extends JComponent {
                     rectList.add(new Rectangle(35, ypos + 3 * i / 4, xSize - 70, i / 4));
                 }
                 g.drawRect(35, ypos, xSize - 70, i);
-                count++;
+                countPaint++;
                 ypos += i;
             }
 
@@ -279,7 +320,7 @@ public class DayView extends JComponent {
         boolean mouseDragged = false;
 
         // Used to keep track of events when dragging already made events
-        int count = -1;
+        int countDrag = -1;
 
         // Left and Right Mouse click variables
         boolean left = false;
@@ -350,14 +391,16 @@ public class DayView extends JComponent {
             start = false;
             isEvent = false;
             mouseDragged = false;
-            count = -1;
+            countDrag = -1;
             newEvent = new EventDetails("New Event", date, 0, 0, 0, 0, new ArrayList<String>(), 1);
             list = map.get(date);
 
-            dragLeft = false;
-            dragRight = false;
+            completeLeft = true;
+            completeRight = true;
+
             animationEnd = false;
             doOnce = false;
+
 
 
             // Functionality for Strokes
@@ -478,7 +521,7 @@ public class DayView extends JComponent {
                     if (!mouseDragged) {
                         mouseDragged = true;
                         for (EventDetails event : list) {
-                            count++;
+                            countDrag++;
                             if (event.getBoundingRectangle().contains(x, y)) {
                                 isEvent = true;
                                 break;
@@ -489,7 +532,7 @@ public class DayView extends JComponent {
                         for (Rectangle rect : rectList) {
                             if (rect.contains(x, y)) {
                                 int t = rectList.indexOf(rect);
-                                Calendar.updatePrevEvent(list.get(count), t);
+                                Calendar.updatePrevEvent(list.get(countDrag), t);
                             }
                             repaint();
                         }
