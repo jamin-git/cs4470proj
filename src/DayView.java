@@ -92,8 +92,11 @@ public class DayView extends JComponent {
 
             if (count > 40) {
                 timerForwards.stop();
+                timerBackwards.stop();
                 count = 0;
                 Calendar.animateNext = false;
+                completeLeft = false;
+                completeRight = false;
                 repaint();
                 animationEnd = !animationEnd;
                 Calendar.updatedVImages();
@@ -102,7 +105,7 @@ public class DayView extends JComponent {
             int width = (xSize) - (xSize * count / 41);
             BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
             g.drawImage(portion, 0, 0, this);
-            g.setColor(Color.gray);
+            g.setColor(new Color(237, 237, 237));
             g.fillRect(width - 60, 0, 60, ySize);
 
 
@@ -117,8 +120,11 @@ public class DayView extends JComponent {
 
             if (count > 40) {
                 timerForwards.stop();
+                timerBackwards.stop();
                 count = 0;
                 Calendar.animatePrev = false;
+                completeLeft = false;
+                completeRight = false;
                 repaint();
                 animationEnd = !animationEnd;
                 Calendar.updatedVImages();
@@ -128,7 +134,8 @@ public class DayView extends JComponent {
             int width = xSize * count / 41 + 1;
             BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
             g.drawImage(portion, 0, 0, this);
-            g.setColor(Color.gray);
+
+            g.setColor(new Color(237, 237, 237));
             g.fillRect(width, 0, 60, ySize);
 
         } else if (dragLeft) {
@@ -142,7 +149,7 @@ public class DayView extends JComponent {
                 BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
                 g.drawImage(portion, xPos, 0, this);
 
-                g.setColor(Color.gray);
+                g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
 
             }
@@ -191,9 +198,9 @@ public class DayView extends JComponent {
                     g.drawImage(Calendar.prevImage, 0, 0, this);
 
                     int width = xSize * count / 41 + 1;
-                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
-                    g.drawImage(portion, 0, 0, this);
-                    g.setColor(Color.gray);
+                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(portion, width, 0, this);
+                    g.setColor(new Color(237, 237, 237));
                     g.fillRect(width, 0, 60, ySize);
                 }
             }
@@ -208,7 +215,7 @@ public class DayView extends JComponent {
                 BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
                 g.drawImage(portion, xPos - xSize, 0, this);
 
-                g.setColor(Color.gray);
+                g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
             }
             if (completeRight) {
@@ -255,12 +262,12 @@ public class DayView extends JComponent {
 
                 if (dragRight) {
 
-                    g.drawImage(Calendar.currImage, 0, 0, this);
+                    g.drawImage(Calendar.nextImage, 0, 0, this);
 
                     int width = (xSize) - (xSize * count / 41);
-                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
-                    g.drawImage(portion, 0, 0, this);
-                    g.setColor(Color.gray);
+                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(portion, width - xSize, 0, this);
+                    g.setColor(new Color(237, 237, 237));
                     g.fillRect(width - 60, 0, 60, ySize);
                 }
 
