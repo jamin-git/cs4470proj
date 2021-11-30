@@ -326,16 +326,16 @@ public class Calendar extends JFrame {
         currImage = makeOffscreenImage(dV);
     }
     protected static void updatemVImages() {
-        LocalDate curr = dV.getDate();
+        LocalDate curr = mV.getDate();
 
-        dV.setDate(curr.plusDays(1));
-        nextImage = makeOffscreenImage(dV);
+        mV.setDate(curr.plusMonths(1));
+        nextImage = makeOffscreenImage(mV);
 
-        dV.setDate(curr.minusDays(1));
-        prevImage = makeOffscreenImage(dV);
+        mV.setDate(curr.minusMonths(1));
+        prevImage = makeOffscreenImage(mV);
 
-        dV.setDate(curr);
-        currImage = makeOffscreenImage(dV);
+        mV.setDate(curr);
+        currImage = makeOffscreenImage(mV);
     }
 
     protected static void nextDay() {
@@ -392,34 +392,55 @@ public class Calendar extends JFrame {
         statusBar.setText("Status: Moved Backward 1 Day");
     }
     protected static void nextMonth() {
-
+        updatemVImages();
 
         temp++;
         LocalDate date = LocalDate.now();
 
-        currImage = makeOffscreenImage(mV);
-
         date = date.plusMonths(temp);
         mV.setDate(date);
 
-        nextImage = makeOffscreenImage(mV);
         animateNext = true;
 
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Forward 1 Month");
     }
+    protected static void nextMonthDrag() {
+        updatemVImages();
+
+        temp++;
+        LocalDate date = LocalDate.now();
+
+        date = date.plusMonths(temp);
+        mV.setDate(date);
+
+        mainSection.setViewportView(mV);
+        statusBar.setText("Status: Moved Forward 1 Month");
+    }
     protected static void prevMonth() {
+        updatemVImages();
+
         temp--;
         LocalDate date = LocalDate.now();
 
-        currImage = makeOffscreenImage(mV);
 
         date = date.plusMonths(temp);
 
         mV.setDate(date);
 
-        nextImage = makeOffscreenImage(mV);
         animatePrev = true;
+
+        mainSection.setViewportView(mV);
+        statusBar.setText("Status: Moved Backward 1 Month");
+    }
+    protected static void prevMonthDrag() {
+        updatemVImages();
+
+        temp--;
+        LocalDate date = LocalDate.now();
+
+        date = date.plusMonths(temp);
+        mV.setDate(date);
 
         mainSection.setViewportView(mV);
         statusBar.setText("Status: Moved Backward 1 Month");

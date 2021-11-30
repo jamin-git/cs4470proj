@@ -210,7 +210,7 @@ public class DayView extends JComponent {
             }
             if (doOnce && !completeRight) {
 
-                g.drawImage(Calendar.currImage, 0, 0, this);
+                g.drawImage(Calendar.nextImage, 0, 0, this);
 
                 BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
                 g.drawImage(portion, xPos - xSize, 0, this);

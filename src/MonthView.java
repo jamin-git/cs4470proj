@@ -45,26 +45,32 @@ public class MonthView extends JComponent {
 
 
     // Animation Variables
-    private Timer timerR = new Timer(25, new ActionListener() {
+
+    // Used 25ms delay to have it trigger 40 times a second (40fps)
+    private Timer timerForwards = new Timer(25, new ActionListener() {
         public void actionPerformed(ActionEvent event){
-            x += xVel;
             count++;
             repaint();
-            System.out.println("In Action Performed");
         }
     });
-    private Timer timerL = new Timer(25, new ActionListener() {
+    private Timer timerBackwards = new Timer(25, new ActionListener() {
         public void actionPerformed(ActionEvent event){
-            x += xVel;
-            count++;
+            count--;
             repaint();
-            System.out.println("In Action Performed");
         }
     });
-    int x = 0;
-    int xVel = 40;
-    int count = 0;
-    boolean animationEnd = false;
+
+    private boolean dragRight = false;
+    private boolean dragLeft = false;
+    private boolean completeLeft = false;
+    private boolean completeRight = false;
+    private int xPos = 0;
+
+
+    private int count = 0;
+    private boolean animationEnd = false;
+    private boolean doOnce = false;
+    private boolean animationComplete = false;
 
     public MonthView() {
         date = LocalDate.now();
@@ -81,57 +87,197 @@ public class MonthView extends JComponent {
         ySize = Calendar.getScrollPaneHeight();
 
 
+        // prev
         if (Calendar.animateNext) {
             if (!animationEnd) {
-                System.out.println("Timer started");
-                timerL.restart();
+                timerForwards.restart();
                 animationEnd = !animationEnd;
             }
-
             g.drawImage(Calendar.nextImage, 0, 0, this);
 
 
-            if (count > 30) {
-                timerL.stop();
-                x = 0;
+            if (count > 40) {
+                timerForwards.stop();
+                timerBackwards.stop();
                 count = 0;
                 Calendar.animateNext = false;
+                completeLeft = false;
+                completeRight = false;
                 repaint();
                 animationEnd = !animationEnd;
-                System.out.println("Timer Ended");
+                Calendar.updatemVImages();
             }
 
-            int width = (xSize) - (xSize * count / 31);
+            int width = (xSize) - (xSize * count / 41);
             BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
             g.drawImage(portion, 0, 0, this);
-            g.setColor(Color.WHITE);
-            g.fillRect(x, 0, 100, ySize);
+            g.setColor(new Color(237, 237, 237));
+            g.fillRect(width - 60, 0, 60, ySize);
+
+
         } else if (Calendar.animatePrev) {
 
             if (!animationEnd) {
-                System.out.println("Timer started");
-                timerR.restart();
+                timerForwards.restart();
                 animationEnd = !animationEnd;
             }
 
-            g.drawImage(Calendar.nextImage, 0, 0, this);
+            g.drawImage(Calendar.currImage, 0, 0, this);
 
-            if (count > 30) {
-                timerR.stop();
-                x = 0;
+            if (count > 40) {
+                timerForwards.stop();
+                timerBackwards.stop();
                 count = 0;
                 Calendar.animatePrev = false;
+                completeLeft = false;
+                completeRight = false;
                 repaint();
                 animationEnd = !animationEnd;
-                System.out.println("Timer Ended");
+                Calendar.updatemVImages();
             }
 
 
-            int width = (xSize) - (xSize * count / 31);
-            BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+            int width = xSize * count / 41 + 1;
+            BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
             g.drawImage(portion, 0, 0, this);
-            g.setColor(Color.WHITE);
-            g.fillRect(xSize - x, 0, 100, ySize);
+
+            g.setColor(new Color(237, 237, 237));
+            g.fillRect(width, 0, 60, ySize);
+
+        } else if (dragLeft) {
+            if (!doOnce) {
+                doOnce = true;
+            }
+            if (doOnce && !completeLeft) {
+
+                g.drawImage(Calendar.prevImage, 0, 0, this);
+
+                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(portion, xPos, 0, this);
+
+                g.setColor(new Color(237, 237, 237));
+                g.fillRect(xPos, 0, 40, ySize);
+
+            }
+            if (completeLeft) {
+                int temp = 5000;
+                int w = 0;
+
+                if (!animationEnd) {
+
+                    for (int i = 0; i < 41; i++) {
+                        w = xSize * i / 41 + 1;
+                        if (temp >= Math.abs(xPos - w)) {
+                            temp = Math.abs(xPos - w);
+                            count = i;
+                        }
+                    }
+                    if (count < 20) {
+                        timerBackwards.restart();
+                    } else {
+                        timerForwards.restart();
+                        animationComplete = true;
+                    }
+                    animationEnd = !animationEnd;
+                }
+
+                if (count > 40 || count < 0) {
+                    timerForwards.stop();
+                    timerBackwards.stop();
+                    count = 0;
+                    repaint();
+
+                    completeLeft = false;
+                    completeRight = false;
+
+                    dragLeft = false;
+                    animationEnd = !animationEnd;
+                    if (animationComplete) {
+                        Calendar.prevMonthDrag();
+                        animationComplete = false;
+                    }
+                    Calendar.updatemVImages();
+                }
+
+                if (dragLeft) {
+
+                    g.drawImage(Calendar.prevImage, 0, 0, this);
+
+                    int width = xSize * count / 41 + 1;
+                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(portion, width, 0, this);
+                    g.setColor(new Color(237, 237, 237));
+                    g.fillRect(width, 0, 60, ySize);
+                }
+            }
+        } else if (dragRight) {
+            if (!doOnce) {
+                doOnce = true;
+            }
+            if (doOnce && !completeRight) {
+
+                g.drawImage(Calendar.nextImage, 0, 0, this);
+
+                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(portion, xPos - xSize, 0, this);
+
+                g.setColor(new Color(237, 237, 237));
+                g.fillRect(xPos, 0, 40, ySize);
+            }
+            if (completeRight) {
+                int temp = 5000;
+                int w = 0;
+
+                if (!animationEnd) {
+
+                    for (int i = 0; i < 41; i++) {
+                        w = xSize * i / 41 + 1;
+                        if (temp >= Math.abs(xPos - w)) {
+                            temp = Math.abs(xPos - w);
+                            count = 40 - i;
+                        }
+                    }
+
+                    if (count < 20) {
+                        timerBackwards.restart();
+                    } else {
+                        timerForwards.restart();
+                        animationComplete = true;
+                    }
+                    animationEnd = !animationEnd;
+                }
+
+
+                if (count > 40 || count < 0) {
+                    timerForwards.stop();
+                    timerBackwards.stop();
+                    count = 0;
+                    repaint();
+
+                    completeLeft = false;
+                    completeRight = false;
+
+                    dragRight = false;
+                    animationEnd = !animationEnd;
+                    if (animationComplete) {
+                        Calendar.nextMonthDrag();
+                        animationComplete = false;
+                    }
+                    Calendar.updatemVImages();
+                }
+
+                if (dragRight) {
+
+                    g.drawImage(Calendar.nextImage, 0, 0, this);
+
+                    int width = (xSize) - (xSize * count / 41);
+                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(portion, width - xSize, 0, this);
+                    g.setColor(new Color(237, 237, 237));
+                    g.fillRect(width - 60, 0, 60, ySize);
+                }
+
+            }
         } else {
             // Creating Rectangle
             g.setColor(gray);
@@ -384,8 +530,18 @@ public class MonthView extends JComponent {
             }
         }
         public void mouseReleased(MouseEvent e) {
+            completeLeft = true;
+            completeRight = true;
+
+            animationEnd = false;
+            doOnce = false;
+
+
+
             selectedEvent = false;
             list = null;
+
+
 
             // Functionality for strokes
             if (strokes != null && strokes.size() > 0) {
@@ -524,7 +680,14 @@ public class MonthView extends JComponent {
                     }
                 }
             } else if (SwingUtilities.isRightMouseButton(e)) {
-                strokes.add(new Point(x, y));
+                if (x < 35 && !dragRight) {
+                    dragLeft = true;
+                } else if (x > (xSize - 35) && !dragLeft) {
+                    dragRight = true;
+                } else if (!dragLeft && !dragRight) {
+                    strokes.add(new Point(x, y));
+                }
+                xPos = x;
                 repaint();
             }
         }
@@ -540,6 +703,9 @@ public class MonthView extends JComponent {
         updateListener();
         addMouseMotionListener(handler);
         addMouseListener(handler);
+    }
+    public LocalDate getDate() {
+        return date;
     }
 
     private void addVerticalEvents(EventDetails e) {
