@@ -344,13 +344,23 @@ public class Calendar extends JFrame {
         temp++;
         LocalDate date = LocalDate.now();
 
-        //currImage = makeOffscreenImage(dV);
 
         date = date.plusDays(temp);
         dV.setDate(date);
 
-        //nextImage = makeOffscreenImage(dV);
         animateNext = true;
+
+        mainSection.setViewportView(dV);
+        statusBar.setText("Status: Moved Forward 1 Day");
+    }
+    protected static void nextDayDrag() {
+        updatedVImages();
+
+        temp++;
+        LocalDate date = LocalDate.now();
+
+        date = date.plusDays(temp);
+        dV.setDate(date);
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Forward 1 Day");
@@ -365,6 +375,18 @@ public class Calendar extends JFrame {
         dV.setDate(date);
 
         animatePrev = true;
+
+        mainSection.setViewportView(dV);
+        statusBar.setText("Status: Moved Backward 1 Day");
+    }
+    protected static void prevDayDrag() {
+        updatedVImages();
+
+        temp--;
+        LocalDate date = LocalDate.now();
+
+        date = date.plusDays(temp);
+        dV.setDate(date);
 
         mainSection.setViewportView(dV);
         statusBar.setText("Status: Moved Backward 1 Day");

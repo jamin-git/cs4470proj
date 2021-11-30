@@ -43,15 +43,15 @@ public class DayView extends JComponent {
     // Animation Variables
 
     // Used 25ms delay to have it trigger 40 times a second (40fps)
-    private Timer timerR = new Timer(25, new ActionListener() {
+    private Timer timerForwards = new Timer(25, new ActionListener() {
         public void actionPerformed(ActionEvent event){
             count++;
             repaint();
         }
     });
-    private Timer timerL = new Timer(25, new ActionListener() {
+    private Timer timerBackwards = new Timer(25, new ActionListener() {
         public void actionPerformed(ActionEvent event){
-            count++;
+            count--;
             repaint();
         }
     });
@@ -66,6 +66,8 @@ public class DayView extends JComponent {
     private int count = 0;
     private boolean animationEnd = false;
     private boolean doOnce = false;
+    private boolean animationComplete = false;
+
 
 
     public DayView() {
@@ -79,22 +81,22 @@ public class DayView extends JComponent {
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
 
-
         // prev
         if (Calendar.animateNext) {
             if (!animationEnd) {
-                timerL.restart();
+                timerForwards.restart();
                 animationEnd = !animationEnd;
             }
             g.drawImage(Calendar.nextImage, 0, 0, this);
 
 
             if (count > 40) {
-                timerL.stop();
+                timerForwards.stop();
                 count = 0;
                 Calendar.animateNext = false;
                 repaint();
                 animationEnd = !animationEnd;
+                Calendar.updatedVImages();
             }
 
             int width = (xSize) - (xSize * count / 41);
@@ -107,18 +109,19 @@ public class DayView extends JComponent {
         } else if (Calendar.animatePrev) {
 
             if (!animationEnd) {
-                timerR.restart();
+                timerForwards.restart();
                 animationEnd = !animationEnd;
             }
 
             g.drawImage(Calendar.currImage, 0, 0, this);
 
             if (count > 40) {
-                timerR.stop();
+                timerForwards.stop();
                 count = 0;
                 Calendar.animatePrev = false;
                 repaint();
                 animationEnd = !animationEnd;
+                Calendar.updatedVImages();
             }
 
 
@@ -132,7 +135,7 @@ public class DayView extends JComponent {
             if (!doOnce) {
                 doOnce = true;
             }
-            if (doOnce) {
+            if (doOnce && !completeLeft) {
 
                 g.drawImage(Calendar.prevImage, 0, 0, this);
 
@@ -141,53 +144,126 @@ public class DayView extends JComponent {
 
                 g.setColor(Color.gray);
                 g.fillRect(xPos, 0, 40, ySize);
+
             }
             if (completeLeft) {
                 int temp = 5000;
                 int w = 0;
-                for (int i = 0; i < 41; i++) {
-                    w = xSize * i / 41 + 1;
-                    if (temp >= Math.abs(xPos - w)) {
-                        temp = Math.abs(xPos - w);
-                        count = i;
-                    }
-                }
-                System.out.println("made it!");
 
                 if (!animationEnd) {
-                    timerR.restart();
+
+                    for (int i = 0; i < 41; i++) {
+                        w = xSize * i / 41 + 1;
+                        if (temp >= Math.abs(xPos - w)) {
+                            temp = Math.abs(xPos - w);
+                            count = i;
+                        }
+                    }
+                    if (count < 20) {
+                        timerBackwards.restart();
+                    } else {
+                        timerForwards.restart();
+                        animationComplete = true;
+                    }
                     animationEnd = !animationEnd;
                 }
 
-                if (count > 40) {
-                    timerR.stop();
+                if (count > 40 || count < 0) {
+                    timerForwards.stop();
+                    timerBackwards.stop();
                     count = 0;
                     repaint();
+
                     completeLeft = false;
+                    completeRight = false;
+
                     dragLeft = false;
+                    animationEnd = !animationEnd;
+                    if (animationComplete) {
+                        Calendar.prevDayDrag();
+                        animationComplete = false;
+                    }
+                    Calendar.updatedVImages();
                 }
 
+                if (dragLeft) {
 
-                int width = xSize * count / 41 + 1;
-                BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
-                g.drawImage(portion, 0, 0, this);
-                g.setColor(Color.gray);
-                g.fillRect(width, 0, 60, ySize);
+                    g.drawImage(Calendar.prevImage, 0, 0, this);
 
+                    int width = xSize * count / 41 + 1;
+                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, width, ySize);
+                    g.drawImage(portion, 0, 0, this);
+                    g.setColor(Color.gray);
+                    g.fillRect(width, 0, 60, ySize);
+                }
             }
         } else if (dragRight) {
             if (!doOnce) {
                 doOnce = true;
             }
-            if (doOnce) {
+            if (doOnce && !completeRight) {
 
-                g.drawImage(Calendar.nextImage, 0, 0, this);
+                g.drawImage(Calendar.currImage, 0, 0, this);
 
                 BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
                 g.drawImage(portion, xPos - xSize, 0, this);
 
                 g.setColor(Color.gray);
                 g.fillRect(xPos, 0, 40, ySize);
+            }
+            if (completeRight) {
+                int temp = 5000;
+                int w = 0;
+
+                if (!animationEnd) {
+
+                    for (int i = 0; i < 41; i++) {
+                        w = xSize * i / 41 + 1;
+                        if (temp >= Math.abs(xPos - w)) {
+                            temp = Math.abs(xPos - w);
+                            count = 40 - i;
+                        }
+                    }
+
+                    if (count < 20) {
+                        timerBackwards.restart();
+                    } else {
+                        timerForwards.restart();
+                        animationComplete = true;
+                    }
+                    animationEnd = !animationEnd;
+                }
+
+
+                if (count > 40 || count < 0) {
+                    timerForwards.stop();
+                    timerBackwards.stop();
+                    count = 0;
+                    repaint();
+
+                    completeLeft = false;
+                    completeRight = false;
+
+                    dragRight = false;
+                    animationEnd = !animationEnd;
+                    if (animationComplete) {
+                        Calendar.nextDayDrag();
+                        animationComplete = false;
+                    }
+                    Calendar.updatedVImages();
+                }
+
+                if (dragRight) {
+
+                    g.drawImage(Calendar.currImage, 0, 0, this);
+
+                    int width = (xSize) - (xSize * count / 41);
+                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, width, ySize);
+                    g.drawImage(portion, 0, 0, this);
+                    g.setColor(Color.gray);
+                    g.fillRect(width - 60, 0, 60, ySize);
+                }
+
             }
         } else {
             // Creating Rectangle
@@ -293,8 +369,6 @@ public class DayView extends JComponent {
                 }
             }
         }
-//        System.out.println("Drag Left: " + dragLeft);
-//        System.out.println("Drag Right: " + dragRight);
     }
 
     @Override
