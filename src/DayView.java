@@ -69,6 +69,7 @@ public class DayView extends JComponent {
     private boolean animationComplete = false;
 
 
+    private boolean resize = false;
 
     public DayView() {
         setDate(LocalDate.now());
@@ -78,8 +79,19 @@ public class DayView extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        // Checking if changeDay occurred
+        if (Calendar.changedDay) {
+            Calendar.changedDay = false;
+            Calendar.updatedVImages();
+        }
+
+        if (xSize != Calendar.getScrollPaneWidth()) {
+            resize = true;
+        }
+
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
+
 
         // prev
         if (Calendar.animateNext) {
@@ -146,8 +158,8 @@ public class DayView extends JComponent {
 
                 g.drawImage(Calendar.prevImage, 0, 0, this);
 
-                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                g.drawImage(portion, xPos, 0, this);
+                //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(Calendar.currImage, xPos, 0, this);
 
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
@@ -168,6 +180,7 @@ public class DayView extends JComponent {
                     }
                     if (count < 20) {
                         timerBackwards.restart();
+                        Calendar.setStatusBar("Page Turn Cancelled");
                     } else {
                         timerForwards.restart();
                         animationComplete = true;
@@ -198,8 +211,8 @@ public class DayView extends JComponent {
                     g.drawImage(Calendar.prevImage, 0, 0, this);
 
                     int width = xSize * count / 41 + 1;
-                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, xSize, ySize);
-                    g.drawImage(portion, width, 0, this);
+                    //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(Calendar.currImage, width, 0, this);
                     g.setColor(new Color(237, 237, 237));
                     g.fillRect(width, 0, 60, ySize);
                 }
@@ -212,8 +225,8 @@ public class DayView extends JComponent {
 
                 g.drawImage(Calendar.nextImage, 0, 0, this);
 
-                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                g.drawImage(portion, xPos - xSize, 0, this);
+                //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(Calendar.currImage, xPos - xSize, 0, this);
 
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
@@ -234,6 +247,7 @@ public class DayView extends JComponent {
 
                     if (count < 20) {
                         timerBackwards.restart();
+                        Calendar.setStatusBar("Page Turn Cancelled");
                     } else {
                         timerForwards.restart();
                         animationComplete = true;
@@ -265,8 +279,8 @@ public class DayView extends JComponent {
                     g.drawImage(Calendar.nextImage, 0, 0, this);
 
                     int width = (xSize) - (xSize * count / 41);
-                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                    g.drawImage(portion, width - xSize, 0, this);
+                    //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(Calendar.currImage, width - xSize, 0, this);
                     g.setColor(new Color(237, 237, 237));
                     g.fillRect(width - 60, 0, 60, ySize);
                 }
@@ -376,6 +390,12 @@ public class DayView extends JComponent {
                 }
             }
         }
+
+        if (resize) {
+            resize = false;
+            Calendar.updatedVImages();
+        }
+
     }
 
     @Override

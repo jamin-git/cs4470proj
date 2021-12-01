@@ -58,6 +58,7 @@ public class Calendar extends JFrame {
     boolean isDay = true;
 
 
+
     // Styling Components
 
     // Fonts
@@ -101,6 +102,9 @@ public class Calendar extends JFrame {
     protected static BufferedImage currImage;
     protected static BufferedImage nextImage;
     protected static BufferedImage prevImage;
+
+    protected static boolean changedMonth = false;
+    protected static boolean changedDay = false;
 
     Calendar() {
         // Setting Up Frame Functionality
@@ -277,6 +281,7 @@ public class Calendar extends JFrame {
         mainSection = new JScrollPane(dV);
         mainSection.setPreferredSize(new Dimension(600, 700));
         frame.getContentPane().add(mainSection, BorderLayout.CENTER);
+        changedDay = true;
     }
 
     // Animation Methods
@@ -294,20 +299,20 @@ public class Calendar extends JFrame {
     }
 
     private void changeMonth() {
+        changedMonth = true;
         mV.setDate(LocalDate.now());
         mainSection.setViewportView(mV);
         isDay = false;
         temp = 0;
         statusBar.setText("Status: System changed to Month View");
-        updatemVImages();
     }
     private void changeDay() {
+        changedDay = true;
         dV.setDate(LocalDate.now());
         mainSection.setViewportView(dV);
         isDay = true;
         temp = 0;
         statusBar.setText("Status: System changed to Day View");
-        updatedVImages();
     }
     private void showGestureTable() {
         mainSection.setViewportView(gtable);

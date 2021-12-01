@@ -72,6 +72,8 @@ public class MonthView extends JComponent {
     private boolean doOnce = false;
     private boolean animationComplete = false;
 
+    private boolean resize = false;
+
     public MonthView() {
         date = LocalDate.now();
     }
@@ -79,12 +81,21 @@ public class MonthView extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        if (xSize != Calendar.getScrollPaneWidth()) {
+            resize = true;
+        }
+
         // Resetting the list of Rectangles to resize them
         rectList.clear();
 
         // Updating Window Size
         xSize = Calendar.getScrollPaneWidth();
         ySize = Calendar.getScrollPaneHeight();
+
+        if (Calendar.changedMonth) {
+            Calendar.changedMonth = false;
+            Calendar.updatemVImages();
+        }
 
 
         // prev
@@ -152,8 +163,8 @@ public class MonthView extends JComponent {
 
                 g.drawImage(Calendar.prevImage, 0, 0, this);
 
-                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                g.drawImage(portion, xPos, 0, this);
+                //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(Calendar.currImage, xPos, 0, this);
 
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
@@ -174,6 +185,7 @@ public class MonthView extends JComponent {
                     }
                     if (count < 20) {
                         timerBackwards.restart();
+                        Calendar.setStatusBar("Page Turn Cancelled");
                     } else {
                         timerForwards.restart();
                         animationComplete = true;
@@ -204,8 +216,8 @@ public class MonthView extends JComponent {
                     g.drawImage(Calendar.prevImage, 0, 0, this);
 
                     int width = xSize * count / 41 + 1;
-                    BufferedImage portion = Calendar.prevImage.getSubimage(0, 0, xSize, ySize);
-                    g.drawImage(portion, width, 0, this);
+                    //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(Calendar.currImage, width, 0, this);
                     g.setColor(new Color(237, 237, 237));
                     g.fillRect(width, 0, 60, ySize);
                 }
@@ -218,8 +230,8 @@ public class MonthView extends JComponent {
 
                 g.drawImage(Calendar.nextImage, 0, 0, this);
 
-                BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                g.drawImage(portion, xPos - xSize, 0, this);
+                //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                g.drawImage(Calendar.currImage, xPos - xSize, 0, this);
 
                 g.setColor(new Color(237, 237, 237));
                 g.fillRect(xPos, 0, 40, ySize);
@@ -240,6 +252,7 @@ public class MonthView extends JComponent {
 
                     if (count < 20) {
                         timerBackwards.restart();
+                        Calendar.setStatusBar("Page Turn Cancelled");
                     } else {
                         timerForwards.restart();
                         animationComplete = true;
@@ -271,8 +284,8 @@ public class MonthView extends JComponent {
                     g.drawImage(Calendar.nextImage, 0, 0, this);
 
                     int width = (xSize) - (xSize * count / 41);
-                    BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
-                    g.drawImage(portion, width - xSize, 0, this);
+                    //BufferedImage portion = Calendar.currImage.getSubimage(0, 0, xSize, ySize);
+                    g.drawImage(Calendar.currImage, width - xSize, 0, this);
                     g.setColor(new Color(237, 237, 237));
                     g.fillRect(width - 60, 0, 60, ySize);
                 }
@@ -457,6 +470,12 @@ public class MonthView extends JComponent {
                 }
             }
         }
+
+        if (resize) {
+            resize = false;
+            Calendar.updatemVImages();
+        }
+
     }
 
     @Override
@@ -596,7 +615,6 @@ public class MonthView extends JComponent {
                     // Checks for Family Tag
                     else if (r.getName().equals("pigtail")) {
                         if (strokeEvent != null) {
-                            System.out.println(strokeEvent.getBoundingRectangle());
                             strokeEvent.toggleTag("Family");
                             Calendar.setStatusBar("Toggled Family Tag via pigtail gesture with an accuracy score of: " + round(r.getScore()));
                         }
