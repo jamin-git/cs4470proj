@@ -81,6 +81,17 @@ public class MonthView extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        if (Calendar.changedMonth) {
+            Calendar.changedMonth = false;
+            Calendar.updatemVImages();
+        }
+
+        if (resize) {
+            resize = false;
+            Calendar.updatemVImages();
+        }
+
+
         if (xSize != Calendar.getScrollPaneWidth()) {
             resize = true;
         }
@@ -92,10 +103,6 @@ public class MonthView extends JComponent {
         xSize = Calendar.getScrollPaneWidth();
         ySize = Calendar.getScrollPaneHeight();
 
-        if (Calendar.changedMonth) {
-            Calendar.changedMonth = false;
-            Calendar.updatemVImages();
-        }
 
 
         // prev
@@ -470,12 +477,6 @@ public class MonthView extends JComponent {
                 }
             }
         }
-
-        if (resize) {
-            resize = false;
-            Calendar.updatemVImages();
-        }
-
     }
 
     @Override

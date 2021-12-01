@@ -85,6 +85,11 @@ public class DayView extends JComponent {
             Calendar.updatedVImages();
         }
 
+        if (resize) {
+            resize = false;
+            Calendar.updatedVImages();
+        }
+
         if (xSize != Calendar.getScrollPaneWidth()) {
             resize = true;
         }
@@ -390,12 +395,6 @@ public class DayView extends JComponent {
                 }
             }
         }
-
-        if (resize) {
-            resize = false;
-            Calendar.updatedVImages();
-        }
-
     }
 
     @Override
